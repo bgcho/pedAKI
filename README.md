@@ -12,8 +12,9 @@
     5. (Optional) Run pedAKI_prep_train_test.ipynb: This script reforms the I/O dataframe to a form that is compatible for train/test. This script provides the final X and y for train/test.
     6. Run pedAKI_prep_train_test_nofill.ipynb: This script does the same thing as pedAKI_prep_train_test.ipynb, but doesn't fill the NaN values. Set the db_name variable as 'ism' before running the script.
   2. STM
-
-          **Note**: Before running the pedAKI_get_itemdf_stm.ipynb, you will need access to the postgreSQL server in ICCADEV1. Follow the instructions below to get access.
+          
+          **Note**
+          Before running the pedAKI_get_itemdf_stm.ipynb, you will need access to the postgreSQL server in ICCADEV1. Follow the instructions below to get access.
           1. Access ICCADEV1 server either remotely or locally. For remote access, the ip address of ICCADEV1 server is 130.140.52.181, Username is Iccadev1\Administrator, and Password is hirba4u
           2. Open "C:\Program Files\PostgreSQL\9.5\data\pg_hba.conf"
           3. Add a line "host	 all	 all	 YOUR_IP_ADDRESS/32	 md5" where YOUR_IP_ADDRESS is your local machine's ip address. For example, If you would like to remotely access to postgreSQL server in ICCADEV1, from your local machine with ip address 130.140.57.17, then you should add "host	 all	 all	 130.140.57.17/32	 md5" at the end of pg_hba.conf
