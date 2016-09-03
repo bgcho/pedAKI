@@ -1,0 +1,65 @@
+hirbacode,hirbaname,bannercode,bannername
+51,Arterial BP Systolic,3047191,SBP
+52,Arterial BP Mean ,196778081,Arterial MAP from monitor
+69,BSA (m2),,
+113,CVP           (mmHg),3145187,CVP
+190,FIO2,826661,FIO2
+198,GCS Total,3054978,Glasgow Coma Score (Form)
+211,Heart Rate,3049471,Heart Rate
+229,CapillaryRefill(sec),3055595,Capillary Refill
+455,NBP Systolic,3059679,Systolic Blood Pressure
+456,NBP Mean,196778082,Mean BP from monitor
+458,ETCO2         (mmHg),3057412,ETCO2
+490,Extremity Color,,
+491,Extremity Temp,,
+608,Height,,
+618,Respiratory Rate,3049550,Respiratory Rate
+676,Temperature C,3144901,Temp C
+734,Lt Pupil Size   (mm),3056927,Left pupil size
+763,Daily Weight,3053089,Weight (kg)
+769,ALT,705926,ALT
+770,AST,705924,AST
+772,Albumin,705919,Albumin
+773,Alk Phosphate,705923,Alkaline Phos
+776,  Arterial Base Excess,120802112,"Base Excess, ABG"
+778,  Arterial PaCO2,120802109,"PCO2, ABG"
+779,  Arterial PaO2,120802110,"PO2, ABG"
+780,  pH,120802108,"pH, ABG"
+781,BUN,681993,BUN
+786,Calcium,681996,Calcium
+788,Chloride,829816,sodium chloride
+791,Creatinine,681994,Creatinine
+811,Glucose,15616636,Glucose POC
+812,  HCO3,120802111,"HCO3(Bicarb), ABG"
+813,Hematocrit,,
+814,Hemoglobin,,
+815,  INR,711261,INR
+816, Inoized Calcium,710269,Ionized Calcium
+821,Magnesium,,
+824,  PT,,
+825,  PTT,711229,APTT
+828,Platelets,682006,Platelet
+829,Potassium,681988,Potassium
+833,RBC,681999,RBC
+834,  SaO2,3053467,O2 Saturation
+837,Sodium,681987,Sodium
+848, Total Bili,705932,Bilirubin Total
+849,Total Protein,705918,"Protein, Total"
+850,Triglyceride,,
+861,WBC,681997,WBC
+982,Pulse Pressure(mmHg),,
+1048,Rt Pupil Size   (mm),3056876,Right pupil size
+1085,Skin Color,,
+1088,Skin Temperature,,
+10051,Arterial BP Diastolic,3047195,DBP
+10455,NBP Diastolic,3059689,Diastolic Blood Pressure
+10538,GCS (prism),,
+10770,Nail Bed Color,,
+10818, Lactic Acid,245357455,"Lactic Acid, ABG"
+16000, PF Ratio,,
+23540,SpO2 (monitor)   (%),,
+200023,Urine Output,3141699,Urine Output
+777,Total CO2,,
+12097,Anion Gap,,
+10773,Phosphorus,,
+10627,ICP,,

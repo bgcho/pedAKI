@@ -1,0 +1,1498 @@
+\documentclass[
+   technote
+]{phildoc}
+\def\Restriction   {2}                      % Enter 0= Unclassified, 1= Philips restricted, 2= Company Confidential
+\def\Noteno        {xxxx}                   % Report number
+\def\Noteyr        {2015}                   % Report year
+\def\Miss          {09}                     % Month issued
+\def\Yiss          {2015}                   % Year issued
+\def\Maintitle     {A Machine Learning Algorithm for the Early Detection of Hemodynamic Instability in the Pediatric Intensive Care Unit (PICU)}
+\def\Subtitle      {}
+\def\Authorname    {Cristhian Potes, Bryan Conroy, Minnan Xu, Larry Eshelman, Lin Yang}
+\def\Authormail    {cristhian.potes@philips.com}
+\def\Audept        {Philips Research North America, Acute Care Solutions}
+\def\Mcfunt        {09}            % Company Confidential until month
+\def\Ycfunt        {2015}          % Company Confidential until year
+\def\Reviewernames {Reza Firoozabadi}
+\def\Additionalnos {}
+\def\Subcategory   {}
+\def\Project       {2012-0028}
+\def\Customer      {Patient Care Monitoring Solutions}
+\def\Keywords      {shock, hypotension, hemodynamic instability}
+\def\Conclusion    {}
+\def\Abstract{
+
+Early recognition and timely intervention are critical steps for the successful management of pediatric shock. However, early recognition of shock can be difficult and requires expertise and a high index of suspicion by the clinician. The objective of this study was to develop an automated algorithm that could assist bedside clinicians with the early detection of hemodynamic instability (shock) in the pediatric intensive care unit (PICU). This study, approved by the institutional review board, was done on a retrospective cohort of all patients admitted to a tertiary PICU at a single center. Patients were labeled as hemodynamically unstable (n=7169) if they received a fluid bolus (i.e., administration of colloid or crystalloid $>$ 10 ml/kg/hr), or blood transfusion (i.e., packed red blood cells $>$ 10 ml/kg over the course of 24 hours), or any dosage of inotropic or vasopressor medications. Patients were labeled as hemodynamically stable (n=5216) if they did not receive any of the interventions mentioned above during the entire PICU stay. Electronic medical records (EMR) such as patient demographics, vital signs, laboratory values, and ventilator settings were obtained from an electronic flow sheet (Philips Care-Vue, Waltham, MA) and the PICU’s own database records (Microsoft Access, Redmond, WA). A total of 61 features were extracted from the EMR and analyzed to predict (i.e., up to 6 hours before) the occurrence of a hemodynamic instability event. A variant of AdaBoost was used to learn a set of low-dimensional classifiers, each of which was age-adjusted. A small subset of data was used for training and validation, while retrospective evaluation was performed on the entire database. Among the 61 features initially included in the analysis, only 21 features were finally selected by AdaBoost. The best classification performance resulted in an area under ROC curve of 0.85, a sensitivity of 0.81, a specificity of 0.71, and a PPV of 0.79. We proposed an algorithm for early detection of hemodynamic instability in PICU patients with a low false positive rate (29\%). This algorithm provides a risk score of hemodynamic instability, which can be of significant clinical value in busy PICU environments.
+}
+%\def\MngmntSum{One page management summary}      %uncomment this line if you would like to write a management summary
+
+
+\newcommand{\ie}{i.e.,}
+\newcommand{\eg}{e.g.,}
+\newcommand{\hii}{HII}
+\newcommand{\apriori}{\textit{a priori}}
+\newcommand{\keyw}[1]{{\bf #1}}
+\newcommand{\rsquared}{$r^{2}$}
+\newcommand{\fig}{Fig.}
+\newcommand{\tab}{Table}
+\newcommand{\eq}{Eq.}
+\newcommand{\matlab}{Matlab\texttrademark}
+
+\chapterstyle{section}  % chapters typeset less pronounced
+\tightlists             % tighter lists
+\unitlength=1.5em       % for the picture environment
+\usepackage{hyperref}
+\usepackage{memhfixc}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsmath}
+%\usepackage{latexsym}
+%\usepackage{color}
+%\usepackage{algorithm}
+%\usepackage{algpseudocode}
+%\usepackage[tight]{subfigure}
+%\usepackage{verbatim}
+%\usepackage{multicol}
+\usepackage{bm}
+%\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{color} %red, green, blue, yellow, cyan, magenta, black, white
+\usepackage{graphics}
+\usepackage{graphicx}
+%\usepackage[table]{xcolor}
+%\usepackage{epsfig}
+
+\definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
+\definecolor{mylilas}{RGB}{170,55,241}
+
+\definecolor{darkgreen}{rgb}{0,0.5,0}
+\newcommand{\mx}[1]{{\color{green}{MX: #1}}}
+\newcommand{\bc}[1]{{\color{cyan}{BC: #1}}}
+\newcommand{\ly}[1]{{\color{red}{LY: #1}}}
+\newcommand{\rf}[1]{{\color{blue}{RF: #1}}}
+% To insert a comment use it as \mx{insert comment}
+
+\def\ck{+}%\checkmark}
+\MakeShortVerb{|}
+
+
+\begin{document}
+\Tnotefrontmatter
+\Large
+
+\chapter{Introduction}
+\label{introduction}
+
+Hemodynamic instability (shock) is a major cause of morbidity and mortality in pediatric population \cite{Ayse:2008}. Shock results from inadequate oxygen delivery to meet the metabolic demands of the body; thus leading to multiple organ dysfunction and death, if it is not treated early. Early recognition of shock and aggressive therapy have been shown to decrease mortality in children. However, early diagnosis of pediatric shock, which is based on vital signs, physical examination, and laboratory data, can be difficult and requires high clinical expertise.
+
+\noindent\textbf{Types of Shock}
+
+Shock may be caused by different mechanisms. Hypovolemic shock, which is the most common type of shock in children, is mainly caused by loss of fluids (severe dehydration, diarrhea) or loss of blood as in hemorrhagic shock. Distributive shock is also caused by loss of fluids, but mainly from inappropriate vasodilation, endothelial dysfunction with capillary leak, loss of vascular tone, or a combination of these factors. Septic shock, the major cause of mortality and morbidity for children, is caused by any type of bacteria leading to body-wide infection, tissue damage, and systemic inflammatory response. Cardiogenic shock is caused by a failure of the heart to pump enough blood leading to poor oxygenation of the main organs and tissues. All of these mechanisms ultimately lead to a decrease in oxygen delivery or an increase in oxygen demand and subsequently to multiple organ dysfunction and death.     
+
+\noindent\textbf{Compensatory Mechanisms}
+
+In the early stages of shock the body activates some mechanisms to compensate for poor oxygenation of the cells and organs \cite{Ayse:2008,Sinniah:2012,Brierley:2009}. See \tab{} \ref{tab:signs_shock}. The sympathetic nervous system is activated and increases heart rate and systemic vascular resistance (SVR). The renin-angiotensin-aldosterone system, a sytem responsible for regulating the body's blood pressure, is also activated contributing to constriction of the blood vessels (vasoconstriction), a decrease in sodium, an increase in potassium, and fluid retention through concentration of urine. In children, compensatory vasoconstriction is so pronounced that systemic blood pressure can be maintained within the normal range despite significant clinical deterioration. Normal blood pressure should not be used as a reliable biomarker of adequate hemodynamics since hypotension is typically a late finding among children in shock. With vasoconstriction, blood is move away from the non-vital organs to the brain, heart and lungs, causing coldness in the extremities, mottled skin, and prolonged capillary refill time. If shock is not recognized and treated in a timely manner, the compensatory mechanisms will fail leading to impending hypotension, tissue hypoxemia, organ dysfunctions, and ultimately to the patient's demise.
+
+
+\begin{table}[h!]
+\centering
+\caption{Clinical signs during early compensated shock}
+\label{tab:signs_shock}       
+\begin{tabular}{l}
+\hline
+\textbf{Clinical Signs} \\
+\hline
+\hline
+Increase in heart rate \\
+\hline
+Increases in systemic vascular resistance \\
+\hline
+Constriction of the blood vessels (vasoconstriction) \\
+\hline
+Decrease urine output \\
+\hline
+Decrease in sodium \\
+\hline
+Increase in potassium \\
+\hline
+Cold extremities \\
+\hline
+Mottled skin \\
+\hline
+Increase in capillary refill time \\
+\hline
+Altered mental status \\
+\hline
+\end{tabular}
+\end{table}
+
+\noindent\textbf{Management of Shock}
+
+Early goal directed therapy has been shown to reduce morbidity and mortality in pediatric population \cite{Rivers:2008a}. The goal of resuscitation is to maintain adequate intravascular volume by administering to the patient large volume of IV fluids and/or cardiovascular agents such as inotropes and vasopressors (see \tab{} \ref{tab:management_shock}). By doing so, the clinician expects to improve blood flow and correct the hypoperfusion state. The clinical targets of improved blood flow and oxygenation are mainly demarcated by normal heart rate, capillary refill of less than 2 sec, good peripheral pulses, and normal blood pressure.
+
+    
+\begin{table}[h!]
+\centering
+\caption{Management of shock. Fluid therapy and cardiovascular agents most commonly used during resuscitation (micrograms (mcg), miliunits (mU)).}
+\label{tab:management_shock}       
+\begin{tabular}{|l|l|l|}
+\hline
+\multicolumn{3}{|c|}{\textit{Fluid Therapy}} \\
+\hline
+\textbf{Fluid} & \textbf{Action} & \textbf{Volume} \\
+\hline
+Crystalloid & Volume expander & 20, 40, or 60 ml/kg \\
+\hline
+Colloid & Volume expander & 20, 40, or 60 ml/kg \\
+\hline
+\multicolumn{3}{|c|}{\textit{Vascular Agent}}\\
+\hline
+\textbf{Med} & \textbf{Action} & \textbf{Dose}\\
+\hline
+Dopamine & Chronotropy, inotropy, vasoconstriction & 3-20 mcg/kg/min \\
+\hline
+Dobutamine & Chronotropy, inotropy, vasodilation & 5-20 mcg/kg/min\\
+\hline
+Epinephrine & Chronotropy, inotropy, vasoconstriction & 0.05-0.2 mcg/kg/min\\
+\hline
+Norepinephrine & Chronotropy, inotropy, vasoconstriction & 0.01-2 mcg/kg/min \\
+\hline
+Milrinone & inotropy, vasodilation, lusitropy & 0.25-4 mcg/kg/min\\
+\hline
+Nitroprusside & vasodilation & 0.5-10 mcg/kg/min \\
+\hline
+Vasopressin & vasoconstriction & 0.3-4 mU/kg/min \\
+\hline
+\end{tabular}
+\end{table}
+
+\noindent\textbf{The Challenge}
+
+Normal vital sign and laboratory ranges for healthy children are useful but have limited application to detecting clinical deterioration in the hospital setting \citep{Bonafide:2013}. Many clinical features such as blood pressure, heart rate, and respiratory rate varies as children grow and age. For instance, normal heart rate for children less than 1 year old are between 100-160 beats per minute. As they get older, heart rate decreases to 60-100 beats per minute. The main challenge of clinical decision support algorithms is to automatically define age-adjusted vital signs and laboratory ranges that can be used for physiologic monitor alarms, vital sign alerts, rapid response team calling criteria, and early indicators of clinical deterioration. 
+
+\noindent\textbf{Aim}
+
+Our objective was to create a hemodynamic instability indicator (\hii{}) algorithm for the early recognition of pediatric shock, so that clinicians can intervene earlier in advance of significant deterioration. The algorithm takes as input vital signs along with laboratory data and patient demographics, adjusts them by age, and outputs an index between 0 and 1 or as a percent from 0 to 100\% to quantify the patient's risk of hemodynamic instability. The algorithm was developed by applying data mining and machine learning techniques on a large pediatric database of retrospective data. In this document, we provide details of the implementation, performance, and architecture of the \hii{} algorithm. This algorithm will be transferred to Patient Care and Monitoring Solutions (PCMS), where it will be then translated into Visual Basic and integrated into the clinical decision support module of the IntelliSpace Critical Care and Anesthesia (ICCA) Philips product. 
+
+\noindent\textbf{Structure}
+
+This document is structured as follows. Chapter \ref{methods} describes the database that was used for the training and testing of the algorithm. Next, we discuss two imputation approaches for dealing with missing data, and three different machine learning classifiers (AdaBoost-abstain, linear discriminant analysis (LDA), and logistic regression) for the early detection of hemodynamic instability. Chapter \ref{results} discusses the classification performance results across different classifiers and age groups, and shows the \hii{} score from 5 children across their PICU stay. Chapter \ref{pseudocode} provides the algorithm architecture, recommended thresholds, and a detailed description of all the necessary components for a real time implementation of the \hii{} algorithm. Finally,Chapter \ref{conclusion} presents a summary of the \hii{} algorithm, the data limitations and challenges, and future work.        
+
+
+\section{Definitions}
+\begin{itemize}
+\item[a.] A \textbf{clinical feature} is defined as a clinical event that has a value, unit of measurement, and time when it was measured and/or recorded. Examples of clinical features are heart rate, systolic blood pressure, skin color, extremities temperatures, glucose, etc. 
+
+\item[b.] \textbf{Hemodynamic instability} is also known as shock, and it is clinically defined as the body's inability to supply the oxygen demand in tissues and organs.  
+      
+\item[c.] \textbf{HII} stands for hemodynamic instability index. This index scores the risk of hemodynamic instability and ranges from 0 to 1, or as a percent from 0 to 100\%. 
+
+\item[d.] A \textbf{clinical intervention} is defined as any intervention to treat shock. This includes resuscitation with fluids (\ie{} administration of a fluid bolus (colloid or crystalloid) $>$ 10 ml$/$kg$/$hr, or blood transfusion (packed red blood cells) $>$ 10 ml$/$kg over the course of 24 hours), or resuscitation with cardiovascular medications (\ie{} administration of any dosage of dopamine, dobutamine, epinephrine, norepinephrine, neosynephrine, or vasopressin).
+
+\item[e.] \textbf{Hypotension} is defined as blood pressure below some threshold. Hypotension in children varies with age. Some books defined hypotension if systolic blood pressure is below 60 mmHg for children younger than 2 years old, or below ($70 + 2\times$ age) mmHg for children between 2 and 10 years old, or below 90 mmHg for children older than 10 years old.
+
+\item[f.] \textbf{Hypoxia} is defined as deficiency in the amount of oxygen reaching the tissues.
+
+\end{itemize}
+
+
+\section{Team}
+The \hii{} algorithm was developed by Philips Research through a multidisciplinary effort of clinicians, engineers, and scientists. Dr. Christopher Newth from Children Hospital Los Angeles (CHLA), and Dr. Gwenn McLaughlin from the Division of Pediatric Critical Care Medicine at University of Miami School of Medicine were our two clinical consultants for this project, both of them experts in the critical care of children. Clinical feedback was also provided by Dr. Joseph Frassica who is Chief Medical Informatics Officer and Chief Technology Officer at Philips Healthcare. The data used for development and validation of the algorithm was obtained through our clinical partners from CHLA and Banner Health. The scientist/engineer team was comprised by Minnan Xu, Bryan Conroy, Larry Eshelman, Lin Yang, and Cristhian Potes.  Minnan, Bryan, Larry, and Cristhian worked on the development and architecture of the algorithm, and Lin worked on the data collection for the algorithm validation.         
+
+
+\section{Intended Audience}
+This document is intended for scientists and engineers at Philips who would like to know the details, performance, and architecture of the algorithm. General understanding of machine learning techniques and physiology is helpful for understanding this document. 
+
+
+\chapter{Materials and Methods}
+\label{methods}
+
+\section{Data Compilation} 
+\label{sec:data_compilation}
+We used a dataset from patients admitted to the pediatric intensive care unit (PICU) in a single hospital for training and testing of the \hii{} algorithm. We will use another dataset from another hospital for the validation of the algorithm. The description of the validation dataset and the validation results will be discussed in a second version of this technical report. 
+
+%We used two datasets from patients admitted to the pediatric intensive care unit (PICU) at two different hospitals. One dataset was used for training and testing of the algorithm, and the other dataset was used for validation across hospitals.
+
+\subsection{Data for training and testing}
+The dataset used for training and testing of the \hii{} algorithm was obtained retrospectively from an electronic flow sheet (Philips Care-Vue, Waltham, MA) and a hospital-owned database (Microsoft Access, Redmond, WA)). This dataset includes records from patients ($13,323$ patients and $16,842$ encounters) admitted to the PICU at Children's Hospital Los Angeles (CHLA) from 2003 to 2011. A patient could have more than one encounter. We refined the dataset to include only those patients whose age was between 0 and 20 years old, and had a recorded weight, resulting in $10,273$ patients and $12,385$ encounters. The dataset originated from a non-annotated database; thus, no gold standard of hemodynamic instability was available. Instead, certain interventions by clinicians were used to demarcate hemodynamic instability events. The criteria for instability were developed based on a strong consensus among a group of experienced intensive care physicians. \footnote{Clinical feedback was provided by Dr. Christopher Newth, Dr. Gwenn McLaughlin, and Dr. Joseph Frassica}
+
+Each encounter (referred in this document as an example) was labeled as either hemodynamically unstable or hemodynamically stable (\ie{} control group). An encounter was labeled as hemodynamically unstable if the patient received a clinical intervention for the treatment of shock. This intervention includes resuscitation with fluids (\ie{} administration of a fluid bolus (colloid or crystalloid) $>$ 10 ml$/$kg$/$hr, or blood transfusion (packed red blood cells) $>$ 10 ml$/$kg over the course of 24 hours), or resuscitation with cardiovascular medications (\ie{} administration of any dosage of dopamine, dobutamine, epinephrine, norepinephrine, neosynephrine, or vasopressin). The onset of a clinical intervention was defined as the time of the first intervention (either fluids, medications, or blood transfusion). An encounter was labeled as hemodynamically stable if the patient did not receive any of the clinical interventions mentioned above during the entire PICU stay. We considered only one clinical intervention per encounter. 
+
+Each example consists of a set of $61$ features that comprised vital signs, laboratory values, and demographics information about the patient. Each of these features was extracted within an observation window that precedes the prediction window. See \fig{}\ref{fig:data_extraction}. The prediction window ($t_{p}$) was set to start 1, 2, 3, 4, 5, and 6 hours before the onset of a clinical intervention ($t_{e}$), and the observation window was set to start 24 hours before the prediction window. The last measurement within the observation window (closest measurement to $t_{p}$) was used as the value for that feature. If no measurements were found within the observation window for a specific feature, that feature was assigned a missing value (\ie{} Not a Number (NaN)). A similar procedure was followed for the control group. Since there was no clinical intervention for this group, features were extracted within a random observation window during the patient stay. The data extracted within the observation window was organized in a data matrix $\bm{X}$. Each row of matrix $\bm{X}$ is a p-dimensional feature vector (\ie{} p=61), and $y^{(i)}\in\{-1,+1\}$ is its associated categorical label (\ie{} y=-1 if stable, or y=1 if unstable). 
+
+Some features were derived from a combination of other features. Noninvasive and invasive shock indices (nSI, iSI) were derived from heart rate (HR) and noninvasive or invasive systolic blood pressure (nSBP, iSBP). nSI was calculated as $\text{nSI} = \frac{\text{HR}}{\text{nSBP}}$ and iSI was calculated as $\text{iSI} = \frac{\text{HR}}{\text{iSBP}}$. The time difference between the time when HR was recorded and the time when nSBP or iSBP was recorded must have been less than $1$ hour to calculate a valid shock index. Otherwise, shock index was considered as missing. Oxygenation index (OI) and oxygen saturation index (OSI) were derived from mean airway pressure (MAP), FiO2, and PaO2 or SpO2. OI was calculated as $\text{OI} = \frac{\text{MAP}*\text{FiO2}}{\text{PaO2}}*100$, and OSI was calculated as $\text{OSI} = \frac{\text{MAP}*\text{FiO2}}{\text{SpO2}}*100$. The time difference between MAP, FiO2, PaO2 or SpO2 must have been less than $1$ hour to calculate a valid OI or OSI. Otherwise, OI or OSI were considered as missing. 
+
+Table \ref{tab:features} shows all features categorized by panel and component tests \cite{Frassica:2005}. Data extracted 1 hour prior to clinical event (\ie{} $t_{p}= t_{e} - 1$) was used for training. Once the classifier was trained, the performance of the algorithm was tested on data recorded 2, 3, 4, 5, and 6 hours before $t_{e}$.
+
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[width=6in]{../figures/extract_data.pdf}
+	\caption{Data Extraction} 
+	\label{fig:data_extraction}      
+\end{figure} 
+
+%Some features were excluded because their measurements were either too noisy or did not have unique units of measurement, or were highly dependent on the hospital's clinical practice. These excluded features are shown in blue in \tab{}\ref{tab:features}. 
+   
+A summary of patient demographics is shown in \tab{} \ref{tab:demographics}. The final dataset included $10,273$ patients, $12,385$ encounters ($5,216$ stable, $7,169$ unstable, 57.88\% instability prevalence)), and $61$ features. Among the $10,273$ patients, $56\%$ were males, $44\%$ were females, and $47\%$ were on ventilation. A patient was on ventilator if there was found within the observation window any records related to ventilator settings (\eg{} ventilator index, ventilator rate, ventilator mode, ventilator type, or mean airway pressure). Age distribution for unstable and stable patients is shown in \fig{}\ref{fig:histogram_age}. Distribution of patients on ventilator as a function of age is shown in \fig{}\ref{fig:histogram_vent-age}
+
+% table for demographic data for patient cohorts
+\begin{table}[h!]
+\centering
+\caption{Demographic data for each group}
+\label{tab:demographics}       
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Group} & \textbf{Unstable} & \textbf{Control}\\
+\hline
+\hline
+Total patients (January 2003 to January 2011) & 6,226 & 4,732 \\
+\hline
+Total encounters	&	7,169	& 	5,216  \\
+\hline
+Male (\%) 			& 	32		&	24	\\
+\hline
+Female (\%)			&	26		&	18	 \\
+\hline
+Age (years)			&	4.59 	&	5.36  \\
+\hline
+On ventilator (\%)	&	60		&	40 \\
+\hline
+Length of PICU stay (days)	& 16.40 &	4.18 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=6in]{../figures/histograms-age.png}
+	\caption{Age distribution for the stable and unstable groups (y-axis corresponds to the number of encounters found within each age group, and x-axis corresponds to age groups (in years)). Red bars correspond to unstable encounters and blue bars correspond to stable encounters.} 
+	\label{fig:histogram_age}      
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=6in]{../figures/histograms-ventilator-age.png}
+	\caption{Distribution of patients on ventilator as a function of age (y-axis corresponds to the number of encounters who were on ventilator for a specific age group, and x-axis corresponds to age groups (in years)). Red bars correspond to unstable encounters and blue bars correspond to stable encounters.} 
+	\label{fig:histogram_vent-age}      
+\end{figure}
+
+The average length of stay in the PICU was $4.18$ days for the control group, and $16.40$ days for the hemodynamically unstable group. Distribution of length of stay in the PICU as a function of age is shown in \fig{}\ref{fig:los_age_pdf}. Among the $7,169$ unstable encounters, $19.5\%$ received any dosage of inotropic or vasopressor medications, $80.5\%$ received a fluid bolus (\ie{} $>$ 10 ml$/$kg$/$hr), and $0\%$ received packed red blood cells $>$ 10 ml$/$kg over the course of 24 hours. An encounter could have more than one clinical intervention; however, we trained the algorithm using data extracted before the first clinical intervention.   
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=6in]{../figures/histograms-LOS-age.png}
+	\caption{Distribution of length of stay in the PICU as a function of age (y-axis corresponds to the average length of stay (in days) for a specific age group, and x-axis corresponds to age groups (in years)). Red bars correspond to unstable encounters and blue bars correspond to stable encounters.} 
+	\label{fig:los_age_pdf}      
+\end{figure}
+
+
+% To do: 
+% 1. add survival to discharge in table above
+% 2. provide distribution of time difference between time of clinical event (meds, and fluid bolus) - time of admission. 
+
+\begin{table}[h!]
+\centering
+% table caption is above the table
+\caption{Listing of features used for hemodynamic instability prediction, along with their units of measurement and percentage of patients with that feature recorded.}
+\label{tab:features}       % Give a unique label
+% For LaTeX tables use
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|l|l|}
+\hline
+\multicolumn{3}{|c|}{\textbf{Arterial Blood Gas}} & \multicolumn{3}{|c|}{\textbf{Invasive Vitals}} \\
+\hline
+
+Arterial pH					&  	    & 66.38	&	Invasive Mean Blood Pressure (iMBP) 		& mmHg	& 50.52	 \\
+Bicarbonate (HCO3)			& mEq 	& 66.33 &	Invasive Systolic Blood Pressure (iSBP)		& mmHg	& 50.29	 \\
+Arterial PaCO2				& mmHg	& 66.38	&	Invasive Diastolic Blood Pressure (iDBP)	& mmHg	& 50.30	 \\
+SaO2						& \%    & 66.18	&	Invasive Shock Index (iSI)					& mmHg	& 46.73	 \\
+Arterial Base Excess (aBE)	& mEq/L & 66.32	&	Central Venous Pressure (CVP)				& mmHg	& 26.15	 \\
+Arterial PaO2				& mmHg	& 66.34	&												&		&	 \\
+
+\hline
+\multicolumn{3}{|c|}{\textbf{Ventilator Parameters}} 	&	\multicolumn{3}{|c|}{\textbf{Noninvasive Vitals / Demographics}} \\
+\hline
+PF Ratio						&	    & 43.71 &	Noninvasive Mean Blood Pressure (nMBP) 		& mmHg		& 96.72	\\
+FiO2 Set						& \%	& 76.52	&	Noninvasive Systolic Blood Pressure (nSBP)	& mmHg		& 96.65	\\
+Mean Airway Pressure (MAP)		& cmH2O	& 43.56	&	Noninvasive Diastolic Blood Pressure (nDBP)	& mmHg		& 96.62	\\
+Positive end-expiratory Pressure (PEEP)	& cmH2O	& 43.78	&	Heart Rate (HR)			            & bpm		& 99.95 \\
+End-tidal CO2 (ETCO2)			& mmHg	& 36.90	&	Noninvasive Shock Index (nSI)	            & bpm/mmHg	& 73.75	 \\
+Oxygenation Index (OI)			&	    & 23.97	&	Pulse pressure (PP)							& mmHg		& 99.81	 \\
+Oxygen Saturation Index (OSI)	&	    & 43.27	&	Respiratory rate (RR)						& bpm	    & 98.63	 \\
+								&		&		&	SpO2										& \%		& 99.87	 \\	
+								&		&		&	Age											& years		& 100	 \\
+								&		&		& 	Sex											&			& 100	 \\
+								&		&		&	Weight										& kg		& 100	 \\
+								&		&		& 	Height										& cm		& 23.31	 \\
+								&		&		&   Temperature (T)								& celsius	& 99.24	 \\
+								&		&		&	Body surface area (BSA)						&	    	& 21.93	 \\
+\hline
+\multicolumn{3}{|c|}{\textbf{Basic Metabolic Panel}} 	&	\multicolumn{3}{|c|}{\textbf{Comprehensive Metabolic Panel}} \\
+\hline
+
+Total Carbon Dioxide (CO2)	& mEq/L	& 76.73	&	Alanine Aminotransferase (ALT)	& U/L   & 25.37	 \\
+Chloride 					& mEq/L	& 73.01	&	Albumin							& g/dL	& 25.56	 \\
+Blood Urea Nitrogen (BUN)	& mg/dL	& 67.63	& 	Alkaline Phosphatase (ALP)		& U/L	& 25.44	 \\
+Creatinine					& mg/dL & 67.88	&	Aspartate Transaminase (AST)	& U/L	& 25.49	 \\
+Potassium					& mEq/L	& 77.24	&	Total Bilirubin					& mg/dL	& 24.53	 \\
+Sodium						& mEq/L	& 77.10	&	Total Protein					& g/dL	& 25.10	 \\
+Glucose						& mg/dL	& 75.34	&	 								&	    &	 \\
+Calcium						& mg/dL	& 67.05	&									&	    &	 \\
+\hline
+
+\multicolumn{6}{|c|}{\textbf{Complete Blood Count}} \\
+\hline
+
+WBC - Leukocytes	& K/$\mu$L 	& 66.86	&	RBC			& M/$\mu$L	& 67.07 \\	
+Hematocrit			& \%		& 72.48	&	Hemoglobin	& g/dL		& 69.52	\\		
+Platelets			& K/$\mu$L	& 67.19	&				&			&	    \\		
+		
+\hline
+\multicolumn{6}{|c|}{\textbf{Additional Tests}} \\
+\hline
+
+Magnesium		& mg/dL	& 36.24	& 	Partial Thromboplastin Time (PTT)	& sec		& 38.93\\
+Ionized Calcium	& mg/dL	& 44.18	&	Prothrombin Time (INR)				& sec		& 39.99\\
+Lactic Acid		& mg/dL	& 20.08	&	Partial Thromboplastin (PT)			& sec		& 40.05\\
+Triglyceride	& mg/dL	& 4.80	&	Anion Gap							& mEq/L		& 68.82\\
+Phosphorus		& mg/dL	& 19.49	&	Urine Output						& cc/kg/hr	& 74.11\\
+
+
+\hline
+\end{tabular}}
+\end{table}  
+
+%\mx{does prevalence mean percentage of patients with this measurement or something else?}
+
+
+\subsection{Data for validation} The next version of this document will include a description of the data used for validation (\ie{} data from Banner Health hospitals).
+
+\section{Algorithm Description}
+\label{sec:alg-desc}
+In this section we will discuss three different machine learning classifiers (AdaBoost-abstain, linear discriminant analysis (LDA), and logistic regression) that were used for the early detection of hemodynamic instability. Vectors will be denoted by bold-face: $\bm{x}$.  To reference the $j^{th}$ element of $\bm{x}$, we use the notation $x_j$. We are given a dataset of $n$ labeled examples $(\bm{x^{(1)}},y^{(1)}),\dots,(\bm{x^{(n)}},y^{(n)})$, where each $\bm{x^{(i)}}\in \mathbb{R}^p$ is a p-dimensional feature vector and $y^{(i)}\in\{-1,+1\}$ is its associated categorical label (class) that we wish to predict. In the case of the hemodynamic instability dataset from Section \ref{sec:data_compilation}, each element of $\bm{x}$ corresponds to a feature listed in Table \ref{tab:features}, and $y$ is the patient state label (either ``stable''$=-1$ or ``unstable''$=1$).
+
+We assume the dataset is incomplete in that features are not present or measured in every feature pattern.  Certain features, such as lactic acid and end-tidal CO2, may be missing on $70\%$ or more of examples.  We denote the $j^{th}$ feature being missing on the $i^{th}$ example as $x^{(i)}_j=\phi$. The classification setting is particularly affected by the presence of missing feature values since most discriminative learning approaches including logistic regression and LDA have no natural ability to deal with missing input features. We use two imputation methods for handling missing values when using LDA or logistic regression for classification. Imputation is widely used in statistics for dealing with missing data. The simplest approach to deal with missing data is imputing missing values of a specific feature by the population mean. Although very simple and easy to compute, this approach does not take into account any relationship between the features. Another approach is to fit a multivariate Gaussian distribution to the incomplete dataset and fill missing values in by using an iterative procedure. We did not use any imputation method when using AdaBoost-abstain for classification. AdaBoost-abstain can handle missing feature values by abstaining the weak learners on the missing feature from voting. 
+
+We trained and tested each of these algorithms using 10 cross validation folds. Each fold has roughly equal size and roughly the same class proportions as the whole dataset. Missing values were imputed in each cross validation fold.     
+
+
+\subsection{Imputation of missing values}
+Next, we will briefly explain two approaches for handling missing feature values when using LDA and/or logistic regression for classification. 
+
+\subsubsection{Imputation with sample mean}
+The mean of feature $j^{th}$ is computed using the examples where feature $j^{th}$ is observed (\eq{}\ref{eqn:mean_value} assumes there are $M$ observed examples). The population mean value for feature $j^{th}$ is then used as the value for feature $j^{th}$ in examples where feature $j^{th}$ is not observed. A single completion of the data set is formed by imputing exactly one value for each unobserved feature.   
+
+%\mx{is this imputation by population mean or is the mean calculated per patient? or perhaps is it an age group mean?}
+
+\begin{eqnarray}
+\label{eqn:mean_value}
+\bar{x_{j}} = \frac{1}{M}\sum_{k=1}^M x_{j}^{(k)}
+\end{eqnarray}  
+
+\subsubsection{Imputation using a multivariate Gaussian model}
+\label{sec:multiv-gauss}
+To impute missing data with a multivariate Gaussian model, we followed a similar procedure explained in \cite{Schneider:2001}. In summary, we transformed the training dataset so that it followed a normal distribution (\ie{} $\mathcal{N}(\mu=0,\sigma^{2}=1)$). To do this, we  first computed for a feature $j^{th}$ its cumulative distributive function (cdf). We then found the inverse cdf for the normal distribution with mean $\mu=0$ and standard deviation $\sigma^{2}=1$, evaluated at each feature value. For instance, a creatinine value of 3.1 will be mapped to a creatinine value of 1.2 as shown in \fig{}\ref{fig:impute_GM}. Once the data was transformed to a normal distribution, we imputed missing values by iteratively estimating the mean ($\bm{\mu}$) and covariance matrix ($\bm{\Sigma}$) of the incomplete dataset using the expectation maximization (EM) algorithm. Finally, we used the relationship between the original data and its CDF to transform the completed data back to the original distribution.
+
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[width=3in]{../figures/imputation_GM.jpg}
+	\caption{Imputation of missing values with a multivariate Gaussian model. Example of the transformation applied to a clinical feature to make it follow a normal distribution.} 
+	\label{fig:impute_GM}      
+\end{figure}
+
+
+% To-Do: If we have time expand more on this    
+      
+\subsection{AdaBoost-abstain}
+\label{sec:adaboost}
+
+%We used a variant of AdaBoost to learn the set of low-dimensional classifiers, each of which abstains when its dependent feature(s) are missing.  This abstaining AdaBoost model was first introduced by \cite{Schapire99} and applied to missing data applications in \cite{Smeraldi10}.
+
+AdaBoost \cite{Schapire:1999} is a very effective machine learning technique for building a powerful classifier from an ensemble of ``weak learners''.  Specifically, the boosted classifier $H(\bm{x})$ is modeled as a generalized additive model of many base hypotheses:
+\begin{eqnarray}
+H(\bm{x}) = b + \sum_{t} \alpha_t h(\bm{x}; \bm{\theta_t})
+\label{eqn:additive}
+\end{eqnarray}
+where $b$ is a constant bias that accounts for the prevalence of the categories, and each $h(\bm{x};\bm{\theta_t})$ is a function of $\bm{x}$, with parameters given by the elements in the vector $\bm{\theta_t}$, and produces a classification output ($+1$ or $-1$).  We also allow each of the base classifiers to abstain from voting (output=$0$).  A final classification decision is assigned by taking the sign of $H(\bm{x})$, which results in a weighted majority vote over the base classifiers in the model.
+
+As is common for AdaBoost applications, we use the class of 1-dimensional decision stumps as the base hypotheses:
+\begin{equation}
+h(\bm{x}; \bm{\theta_t}=(j,\tau)) = \left\{\begin{array}{rl} +1\text{, } & x_j \geq \tau \\ -1\text{, } & x_j < \tau \\ 0\text{, } & x_j = \phi \\ \end{array}\right.
+\end{equation}
+Thus, each base classifier votes by comparing one of the $p$ features in the data to a threshold.  If that particular feature is missing, the base classifier abstains from voting.
+
+The algorithm to learn the bias $b$, base hypotheses $h(\bm{x};\bm{\theta_t})$ and weightings $\alpha_t$ is a version of the traditional discrete AdaBoost algorithm adapted to accommodate classifiers that abstain, which was described in \cite{Schapire:1999}. This algorithm has been employed previously for missing data problems in predicting protein-protein interactions \cite{Smeraldi:2010}, but since it is a non-standard application of AdaBoost, we briefly reproduce the details of the algorithm here.
+
+AdaBoost seeks to minimize the exponential loss function:
+\begin{eqnarray}
+L = \sum_{i=1}^n \exp\left(-y^{(i)} H(\bm{x^{(i)}})\right)
+\label{eqn:adaboost_exp_loss}
+\end{eqnarray}
+which can be shown to be an upper bound on the training error \cite{Freund:2009}.  Optimization proceeds in a greedy fashion: at each iteration (or boosting round) $t$, a new classifier is added to the model that most decreases the objective function in (\ref{eqn:adaboost_exp_loss}).  Thus, at iteration $t=T$, we fix the base classifiers learned at iterations $1,\dots,T-1$ and add a new classifier $h(\bm{x}; \bm{\theta_T})$, weighted by $\alpha_T$, that minimizes the exponential loss objective:
+\begin{eqnarray}
+\sum_{i=1}^n \exp\left(-y^{(i)}\left[b + \sum_{t=1}^{T-1} \alpha_t h(\bm{x^{(i)}}; \bm{\theta_t}) + \alpha_{T} h(\bm{x^{(i)}}; \bm{\theta_T})\right]\right) \\
+= \sum_{i=1}^n w_i^{(T)} \exp\left(-y^{(i)} \alpha_T h(\bm{x^{(i)}}; \bm{\theta_T})\right) \label{eqn:adaboost_T}
+\end{eqnarray}
+where $w_1^{(T)},w_2^{(T)},\dots,w_n^{(T)}$ is the current weight distribution on the training data:
+\begin{equation}
+w_i^{(T)} = \exp\left(-y^{(i)}\left[b + \sum_{t=1}^{T-1} \alpha_t h(\bm{x^{(i)}}; \bm{\theta_t})\right]\right)
+\end{equation}
+These weights reflect how well the current classifier (up to iteration $T-1$) is performing on each of the training examples:  the larger the weight, the poorer the classifier predicts the true label of that example.
+
+The algorithm boils down to selecting $h(\bm{x^{(i)}}; \bm{\theta_T})$ and $\alpha_T$.  It can be shown \cite{Schapire:1999} that the classifier that most decreases the objective is the one that minimizes:
+\begin{eqnarray}
+D_0(\bm{\theta_T}) &+& 2\sqrt{D_{+}(\bm{\theta_T})D_{-}(\bm{\theta_T})} \label{eqn:clf_selection_criterion} \\ 
+\text{where} & & D_0(\bm{\theta_T}) = \sum_{i=1}^n w_i^{(T)} \mathbb{I}(h(\bm{x^{(i)}};\bm{\theta_T}) = 0) \\
+			 & & D_{+}(\bm{\theta_T}) = \sum_{i=1}^n w_i^{(T)} \mathbb{I}(y^{(i)}h(\bm{x^{(i)}};\bm{\theta_T}) > 0) \\
+			 & & D_{-}(\bm{\theta_T}) = \sum_{i=1}^n w_i^{(T)} \mathbb{I}(y^{(i)}h(\bm{x^{(i)}};\bm{\theta_T}) < 0) \\
+\end{eqnarray}
+where $\mathbb{I}(x)$ is the indicator function.  Intuitively, $D_0(\bm{\theta_T})$, $D_{+}(\bm{\theta_T})$ and $D_{-}(\bm{\theta_T})$ are the fraction of examples (under the current training weight distribution) for which the classifier abstains, classifies correctly, and classifies incorrectly.
+This best classifier can be identified efficiently from the class of decision stumps.
+
+Once the classifier has been selected, the weight can be computed analytically by setting the derivative of (\ref{eqn:adaboost_T}) to zero, resulting in the following update:
+\begin{equation}
+\alpha_T = \frac{1}{2} \log\left(\frac{D_{+}(\bm{\theta_T})}{D_{-}(\bm{\theta_T})}\right)
+\end{equation}
+Notice that even though the classifier selection criterion (\ref{eqn:clf_selection_criterion}) penalizes a classifier for abstaining, the weighting $\alpha_T$ that it is assigned if it is selected is not affected.  Instead, a classifier's weighting only depends on how discriminative it is when it votes, and is not penalized for abstaining.
+
+Upon incorporating the weighted classifier $\alpha_Th(\bm{x};\bm{\theta_T})$, we update the weight distribution:
+\begin{equation}
+w_i^{(T+1)} \gets w_i^{(T)} \exp\left(-y^{(i)} \alpha_T h(\bm{x^{(i)}};\bm{\theta_T})\right)
+\end{equation}
+and proceed to the next round of boosting $t=T+1$.
+
+If the prevalence of hemodynamic instability in the ICU dataset is unbalanced, the best classifier to add may often be one that is highly biased towards the most prevalent category.  To remove this effect, we re-tune the bias at each iteration.  Specifically, at the start of each boosting round, the bias is adjusted as follows:
+
+\begin{eqnarray}
+b &\gets& b + \Delta_b \\
+\Delta_b &=& \frac{1}{2}\log\left(\frac{\sum_{i=1}^n w_i^{(T)} \mathbb{I}(y^{(i)} = +1)}{\sum_{i=1}^n w_i^{(T)} \mathbb{I}(y^{(i)} = -1)}\right) \end{eqnarray}
+This update adjusts the weight distribution to:
+\begin{equation}
+w_i^{(T)} \gets w_i^{(T)}\exp(-y^{(i)}\Delta_b)
+\end{equation}
+which has the appealing property of equalizing the weight distribution on positively and negatively labeled examples:
+\begin{equation}
+\sum_{i=1}^n w_i^{(T)} \mathbb{I}(y^{(i)} = -1) = \sum_{i=1}^n w_i^{(T)} \mathbb{I}(y^{(i)} = +1)
+\end{equation}
+This removes the prevalence bias and forces the learning algorithm to select a classifier with good separation between the two classes.
+
+To account for age-dependent clinical features, we introduced a slight modification in the algorithm. After a classifier has been selected at iteration $t$, we computed an age-based decision threshold based on a number of age groups. We defined a total of $65$ age groups -- the first 3 groups were $[0-3)$,$[3-6)$ and $[6-12)$ months. The remaining age groups were defined from $1$ to $20$ years old, in steps of 1.5 years, and offset of 0.25 years (\eg{} $[1-2.5)$,$[1.25-2.75),\dots,[18.5-20))$. The notation $[a,b) = \left\{x \in \mathbb{R} \mid a\leq x<b \right\}$. If the selected weak learner depended on any of the following features:(nSI, iSI, nSBP, iSBP, nMBP, iMBP, nDBP, iDBP, HR, or PPA), a quadratic function was fitted to the decision thresholds; otherwise, a linear function was fitted. The weight $\alpha_T$ was recomputed by using a line search (\ie{} finding the root of the derivative of \eq{} \ref{eqn:adaboost_T} with respect to $\alpha_T$ as shown in \eq{} \ref{eqn:linesearch})
+
+%The resulting $65$ decision thresholds were then smoothed with a median filter of order 4 (\ie{} median values across 4 consecutive age groups).
+
+\begin{equation}
+\label{eqn:linesearch}
+\frac{\partial L}{\partial\alpha_{t}}= -\sum_{i=1}^n w_i^{(T)}y^{(i)} h\left(\bm{x^{(i)}},\text{age}; \bm{\theta_T}\right) \exp\left(-y^{(i)} \alpha_T h\left(\bm{x^{(i)}},\text{age}; \bm{\theta_T}\right)\right)
+\end{equation}
+%\exp\left(-y^{(i)} \alpha_T h(\bm{x^{(i)}}; \bm{\theta_T})\right
+
+After $T$ rounds of boosting, we obtain a static ensemble classifier $H(\bm{x})$.  The set of bivariate classifiers $f_1(x_1,\text{age}),f_2(x_2,\text{age}),\dots,f_p(x_p,\text{age})$ that comprise this ensemble are the weighted sum of decision stumps acting on each of the features. So at the end of each boosting round $t=T$, if the selected base classifier operates on feature $x_j$, we update the appropriate bivariate classifier $f_j(x_j,\text{age}) \gets f_j(x_j,\text{age}) + \alpha_T h(\bm{x},\text{age};\bm{\theta_T})$.  Thus, $H(\bm{x})$ can be equivalently expressed as $H(\bm{x})=\sum_{j=1}^p f_j(x_j,\text{age})$. 
+
+
+\subsection{Linear discriminant analysis (LDA)}
+\label{sec:lda}
+LDA is a machine learning method that finds the best linear combination of features that best discriminate between the two classes. Specifically, LDA finds a projection where examples from the same class are projected very close to each other and, at the same time, the projected means of each class are as far apart as possible. LDA assumes that the probability density function (pdf) for each class $c$ (\ie{} $p(\bm{x_{n}}\mid y=c)$) is normally distributed with population means and covariance parameters $(\bm{\mu_{c}},\bm{\Sigma_{c}})$; and that the class covariances are equal (\ie{} homoscedasticity assumption, so $\bm{\Sigma_{0}} = \bm{\Sigma_{1}} = \bm{\Sigma})$. A closed-form solution can be derived from the class posterior distribution in a class conditional Gaussian model with shared covariance and different means. The posterior class probability is given in \eq{}\ref{eqn:lda1}, which can be mathematically written in a form that depends only on a linear combination of the features plus some bias that accounts for the prevalence of the classes (see \eq{}\ref{eqn:lda2}). In the equations below, $\theta$ is the class probability and $\bm{\Sigma}$ is the pooled covariance matrix. Population means and pooled covariance matrix in \eq{}\ref{eqn:lda1} are estimated by computing the sample mean and sample covariance from a complete data set (\ie{} missing features have been imputed by using any of the imputation methods explained above). 
+
+\begin{eqnarray}
+p(y_{n}=c)=\theta_{c} \\
+p(\bm{x_{i}}\mid y_{i}=c) = \begin{vmatrix}2\pi\bm{\Sigma}\end{vmatrix}^{-\frac{1}{2}} \exp\left(-\frac{1}{2}(\bm{x_{i}}-\bm{\mu_{c}})^{T} \bm{\Sigma^{-1}} (\bm{x_{i}}-\bm{\mu_{c}}) \right) \\ 
+p(y_{i}=1 \mid \bm{x_{i}}) = \frac{\theta_{1}\begin{vmatrix} 2\pi\bm{\Sigma}\end{vmatrix}^{-\frac{1}{2}}\exp\left(-\frac{1}{2}(\bm{x_{i}}-\bm{\mu_{1}})^{T} \bm{\Sigma^{-1}} (\bm{x_{i}}-\bm{\mu_{1}}) \right)}{\bm{\Sigma}_{c\in 0,1} \theta_{c}\begin{vmatrix}2\pi\bm{\Sigma}\end{vmatrix}^{-\frac{1}{2}} \exp\left(-\frac{1}{2}(\bm{x_{i}}-\bm{\mu_{c}})^{T} \bm{\Sigma^{-1}} (\bm{x_{i}}-\bm{\mu_{c}}) \right)} \label{eqn:lda1} \\
+=\frac{1}{1+\exp(\bm{w}^{T}\bm{x_{i}} + b)} \label{eqn:lda2}\\
+\bm{w} = \left(\bm{\mu_{1}} - \bm{\mu_{0}}\right)^{T}\bm{\Sigma}^{-1}\\
+b = \frac{1}{2}\left(\bm{\mu_{1}} - \bm{\mu_{0}}\right)^{T}\bm{\Sigma}^{-1}\left(\bm{\mu_{1}} + \bm{\mu_{0}}\right) + \frac{1}{2}\log\left(\frac{\theta_{1}}{\theta_{0}}\right)
+\end{eqnarray}
+
+Since LDA assumes the pdf of each class is normally distributed, we transformed the data (with a similar procedure described in Section \ref{sec:multiv-gauss}) within each cross validation fold, so it follows a normal distribution.  
+
+\subsection{Logistic regression}
+\label{sec:logreg}
+Logistic regression predicts a binary response variable based on one or more predictor variables (features), which can be discrete and/or continuous. Specifically, logistic regression measures the relationship between the response variable and one or more independent variables by estimating probabilities using a logistic function. The linear logistic regression model takes the form shown in \eq{}\ref{eqn:logit}, where $\bm{w}$ is a p-dimensional vector referred to as the weight vector, and $b$ is the bias. The parameters $\bm{w}$ and $b$ can be estimated using maximum likelihood estimation.
+   
+\begin{eqnarray}
+p(y_{i}=1 \mid \bm{x_{i}})=\frac{1}{1+\exp\left(-\left(\bm{w}^{T}\bm{x_{i}}+b\right)\right)} \label{eqn:logit}
+\end{eqnarray}
+
+
+\chapter{Results}
+\label{results}
+% higlight the fact that we get similar performance with less features when we adjusted for age
+
+This chapter shows the classification performance of the linear discriminant analysis (LDA), logistic regression, and AdaBoost-abstain classifiers when training and testing on the CHLA dataset. AdaBoost-abstain outperformed the other two classifiers and was selected as the final classifier for the early prediction of hemodynamic instability. In this chapter, we show the classification performance of AdaBoost-abstain across different age groups and across patients on mechanical ventilation. We also show which features were selected by AdaBoost-abstain and their importance in the classification performance. Finally, we present some clinical cases to illustrate the \hii{} time series along with other features, and clinical interventions.    
+
+\section{Performance}
+We used three different classifiers, LDA, logistic regression, and AdaBoost-abstain, for the early prediction of hemodynamic instability. Table \ref{tab:clf_description} shows a brief description of each classifier. Each of these classifiers were trained and tested on the CHLA dataset. This dataset included $12,385$ examples ($5,216$ stable, $7,169$ unstable) and $61$ features. Our dataset is incomplete in the sense that some feature values are missing; therefore, the classification performance of each classifier highly depends on how well it handles missing data. On the one hand, LDA and logistic regression do not deal with the problem of missing data directly. Rather, missing values must be estimated using imputation techniques. One technique imputed missing values with the population mean, and the other technique imputed missing values by fitting a multivariate Gaussian model into the data. On the other hand, AdaBoost-abstain handles missing feature values directly by abstaining the weak learners depending on missing features from voting, without the need to impute missing values. Figure \ref{fig:clf_across_algorithms} shows the classification performance across the three classifiers. AdaBoost-abstain obtained the best classification performance (AUC=0.85) followed by LDA-Mean (AUC=0.83). Imputing missing values with the population mean resulted in a better classification performance than imputing missing values with a multivariate Gaussian model.
+
+% add a table listing all classifiers along with a short description of the imputation technique       
+\begin{table}[h!]
+\centering
+\caption{Description of machine learning algorithms applied to hemodynamic instability}
+\label{tab:clf_description}       
+\begin{tabular}{|p{0.2\textwidth}p{0.6\textwidth}|}
+\hline
+\textbf{Classifier Name} & \textbf{Description} \\
+\hline
+\hline
+AdaBoost-abstain & Missing feature values are not imputed, and the AdaBoost algorithm with abstaining, as described in Section \ref{sec:alg-desc} was run on the training dataset. \\
+\hline
+LDA-Mean & Missing features were first imputed with their population mean values. Standard LDA was then run on the completed training dataset.\\
+\hline
+LDA-MG &	Missing features were imputed using a multivariate Gaussian model. Standard LDA was then run on the completed training dataset. \\
+\hline
+LR-Mean & Missing features were first imputed with their population mean values. Standard logistic regression was then run on the completed training dataset.		\\
+\hline
+LR-MG & Missing features were imputed using a multivariate Gaussian model. Standard logistic regression was then run on the completed training dataset. \\
+\hline
+\end{tabular}
+\end{table}
+
+
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[width=5in]{../figures/classification_performance_across_algorithms.png}
+	\caption{Classification performance across LDA, logistic regression, and AdaBoost-abstain classifiers.} 
+	\label{fig:clf_across_algorithms}      
+\end{figure}
+
+%\mx{the colors in this figure are too similar.  it's difficult to tell which one is LDA-Mean and which one is LDA-Multivariate Gaussian}
+
+The results presented from now on are from the AdaBoost-abstain classifier. Figure \ref{fig:clf_across_age} shows AdaBoost-abstain classification performance across different age groups. The best classification performance was obtained for the [0-3) months old age group (AUC=0.90), follow by the [6-12) months old age group and [9-11) years old age group. It is worthy to note that the [0-3) months old age group has the largest number of unstable encounters (2400) compare to the other age groups (see \fig{} \ref{fig:histogram_age}). This may explain why AdaBoost-abstain classification performance is better for this age group -- the higher prevalence of unstable examples may have allowed the classifier to better learn the characteristics of instability on this age group.   
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=5in]{../figures/classification_performance_across_age.png}
+	\caption{AdaBoost-abstain classification performance across different age groups.} 
+	\label{fig:clf_across_age}      
+\end{figure}
+
+Figure \ref{fig:clf_ventilator} shows AdaBoost-abstain classification performance for patients on mechanical ventilation. Ventilator parameters selected by AdaBoost-abstain were mean airway pressure (MAP), FiO2, and oxygen saturation index (OSI). The classification performance is slightly better for patients on mechanical ventilation (AUC=0.86) than patients who are not (AUC=0.85). This slightly improvement in classification performance may be explained by the fact that mechanically ventilated patients are in general sicker and therefore at higher risk of \hii{}.  
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=5in]{../figures/classification_performance_ventilator.png}
+	\caption{AdaBoost-abstain classification performance for patients on ventilator.} 
+	\label{fig:clf_ventilator}      
+\end{figure}
+ 
+Figure \ref{fig:clf_across_features} shows AdaBoost-abstain classification performance across different sets of features. AdaBoost-abstain selected $21$ features (see \tab{} \ref{tab:included_features}) out of the $61$ initial features (see \tab{} \ref{tab:features}). The classification performance when using all $21$ selected features is AUC=0.85. If weight and height features are not included in the final classifier, the classification performance is slightly affected. This is important to note since height is not very prevalent and may not be available by the production system in real time. If ventilator parameters such as MAP and FiO2, OSI are not included, the classification performance is dropped to AUC=0.83. Similarly, if invasive vital signs such as iSBP, iMBP, iDBP, and iSI are not included, the classification performance is dropped to AUC=0.83. Finally, if invasive vital signs, ventilator parameters, and urine output are not included, the classification performance is dropped to AUC=0.79.
+
+\begin{table}[h!]
+\center
+\caption{List of features selected by AdaBoost-abstain, along with the units of measurement. The features are sorted in the order they were selected.}
+\label{tab:included_features}
+\begin{tabular}{|l|l|l|}
+	\hline
+	\textbf{Rank} & \textbf{Feature Label} & \textbf{Units of Measurement} \\
+	\hline
+	\hline
+	1 & Invasive Shock Index (iSI) & bpm/mmHg \\
+	\hline
+	2 & Mean Airway Pressure (MAP) & cmH2O \\
+	\hline
+	3 & Arterial Base Excess (aBE) & mEq/L \\
+	\hline
+	4 & Noninvasive Shock Index (nSI) & bpm/mmHg\\
+	\hline
+	5 & Partial Thromboplastin (PT) & sec \\
+	\hline
+	6 & Arterial pH & -- \\
+	\hline
+	7 & Total Protein & g/dL \\
+	\hline
+	8 & Urine Output & cc/kg/hr\\
+	\hline
+	9 & Hemoglobin & g/dL\\
+	\hline
+	10 & Noninvasive Systolic Blood Pressure (nSBP) & mmHg \\
+	\hline
+	11 & Oxygen Saturation Index (OSI) & \\
+	\hline
+	12 & Height & cm \\
+	\hline
+	13 & Lactic Acid & mg/dL \\
+	\hline
+	14 & Heart Rate (HR) & bpm \\
+	\hline
+	15 & Noninvasive Mean Blood Pressure (nMBP) & mmHg \\
+	\hline
+	16 & Invasive Diastolic Blood Pressure (iDBP) & mmHg \\
+	\hline
+	17 & FiO2 Set & \% \\
+	\hline
+	18 & Daily-Weight & kg \\
+	\hline
+	19 & Invasive Mean Blood Pressure (iMBP) & mmHg \\
+	\hline
+	20 & Invasive Systolic Blood Pressure (iSBP) & mmHg \\
+	\hline
+	21 & Noninvasive Diastolic Blood Pressure (nDBP) & mmHg \\	
+	\hline
+\end{tabular}
+\end{table}
+    
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=5in]{../figures/classification_performance_across_features.png}
+	\caption{AdaBoost-abstain classification performance across different set of features.} 
+	\label{fig:clf_across_features}      
+\end{figure}
+
+We mentioned in \ref{sec:adaboost} that each of the clinical features were adjusted for age. To do this, we computed a decision threshold for each age group resulting in an ensemble of 21 bivariate classifiers. We want to note that if we just use univariate classifiers (including age as a feature) instead of bivariate classifiers, the classification performance is better (AUC=0.87 compare to AUC=0.85) at the expense of including more features (49 compare to 21). We believe that bivariate classifiers reduce overfitting and may generalize better to other datasets. We need to test this hypothesis with data recorded from different hospitals.    
+
+
+\section{Bivariate Classifiers}
+\label{sec:bivariate_clf}
+
+The final output of the \hii{} algorithm is a score on a scale from 0 to 1 or as a percent from 0 to 100\%. The \hii{} score depends on a total of $21$ features finally selected during training. Table \ref{tab:included_features} lists the $21$ features selected by AdaBoost-abstain along with the units of measurement. The \hii{} score is an ensemble of many bivariate classifiers (also known as ''weak learners'). Each bivariate classifier takes as input one of the $21$ features and age, and outputs a prediction score. The output of each bivariate classifier is then combined into a weighted sum that represents the final output of the boosted classifier. See \fig{} \ref{fig:bivariate_clf}. Each bivariate classifier is composed of one or more scaled decision stumps. A decision stump at threshold $\tau$, denoted $u(x-\tau)$, is given by
+
+\begin{eqnarray}
+u(x-\tau) =
+\begin{cases}  
+1, \quad \phantom{\infty}x \geq \tau \\
+-1, \quad \phantom{0} x<\tau\\
+\end{cases}
+\end{eqnarray}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=6in]{../figures/HII.jpg}
+	\caption{Schematic of \hii{} algorithm. The \hii{} score is an ensemble of many bivariate classifiers. Each bivariate classifier takes as input one of the $21$ features and age, and outputs a prediction score.} 
+	\label{fig:bivariate_clf}      
+\end{figure}
+
+The threshold $\tau$ is a linear or quadratic function of age. If feature $x$ is HR, nSBP, nMBP, nDBP, nSI, iSBP, iMBP, iDBP, or iSI, the threshold $\tau$ is a quadratic function of age (\ie{} $\tau=\beta_{0} + \beta_{1}\text{age} + \beta_{2}\text{age}^{2}$). Otherwise, threshold $\tau$ is a linear function of age (\ie{} $\tau=\beta_{0} + \beta_{1}\text{age}$). A positive output prediction votes for hemodynamic instability, while a negative output votes for stability. With this definition, the bivariate classifiers are of the form:
+
+\begin{eqnarray}
+f(x,\text{age}) = b + \alpha_{1}u(x-\tau_{1}(\text{age})) + \alpha_{2}u(x-\tau_{2}(\text{age})+\dots
+\end{eqnarray}
+
+where $b$ is a bias (constant value), $\alpha_{1},\alpha_{2},\dots$ are scaling factors, and $\tau_{1}(\text{age}), \tau{2}(\text{age}, \dots$ are age-dependent decision stump thresholds. The number of stumps varies for each bivariate classifier. The bias, scaling factors, and parameters to compute the age-dependent thresholds for each bivariate classifier are provided in the file \texttt{bivariate-clf.csv}, with each row corresponding to a feature. Table \ref{tab:bivariate_clf} shows an example of the bias ($b$), scaling factors ($\alpha$), and the parameters ($\beta_{0},\beta_{1}, \beta_{2}$) needed to compute the age-dependent decision stump thresholds ($\tau$).
+
+\begin{table}
+\center
+\caption{Examples of bivariate clasifiers obtained for nSI and pH features}
+\label{tab:bivariate_clf}
+\begin{tabular}{|l|l|l|l|l|l|}
+	\hline
+	\textbf{Feature} & $b$ & $\beta_{0}$ & $\beta_{1}$ & $\beta_{2}$ & $\alpha$ \\
+	\hline
+	\hline
+	Noninvasive shock index (nSI) &  0.0117 & 0.0022 & -0.0616	& 1.5463 & 0.2432 \\
+	\hline
+	Noninvasive shock index (nSI) &  0.0519 & 0.0049 & -0.1161	& 1.6565 & -0.0102 \\
+	\hline
+	pH	& 0.0856 & 0.0023 & 7.3212 & -- & -0.1071 \\
+	\hline	
+\end{tabular}
+\end{table}
+
+
+This result in the following bivariate classifiers:
+
+\begin{eqnarray}
+\tau_{1} = 0.0022 - 0.0616 \times \text{age} + 1.5463 \times \text{age}^{2} \\
+\tau_{2} = 0.0049 - 0.1161 \times \text{age} + 1.6565 \times \text{age}^{2} \\
+f_{\text{nSI}} = 0.0117 + 0.2432 \times u(x_{\text{nSI}}-\tau_{1}) - 0.0102 \times u(x_{\text{nSI}}-\tau{2})
+\end{eqnarray}
+
+and
+
+\begin{eqnarray}
+\tau_{1} = 0.0023 + 7.3212 \times \text{age} \\
+f_{\text{pH}} = 0.0856 - 0.1071 \times u(x_{\text{pH}}-\tau_{1})
+\end{eqnarray}
+
+Figure \ref{fig:clf_example_bivariate_clf} plots this function as a function of nSI value and age. For this example, there are 2 decision stumps. It is important to note that if $x_{i} = \text{NULL}$, then $f_{i}(x_{i})=0$ (\ie{} the bivariate classifier abstains from voting). In particular, in the example for nSI above, if $x_{\text{nSI}} = \text{NULL}$, then $f_{\text{nSI}}(x_{\text{nSI}}) = 0$. In addition to the bivariate classifiers, there is also a constant bias classifier ($f_{\text{bias}}$), which accounts for the population prevalence of hemodynamic instability. 
+
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[width=5in]{../figures/features_selected/feat-nSI.png}
+	\caption{Example of a bivariate classifier. Two decision stumps were found for nSI. Each decision stump is defined by an age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.} 
+	\label{fig:clf_example_bivariate_clf}      
+\end{figure}
+ 
+
+
+\section{Clinical Cases}
+\label{sec:clinical_cases}
+This section shows the \hii{} score, clinical features, and interventions from 5 children across their PICU stay. We present different examples where \hii{} predicted hemodynamic instability before the patient was intervened or where \hii{} stayed in the low-medium risk zone when the patient was stable. We also present an interesting example where \hii{} seemed to track the patient's response to therapy. In the following examples, the \hii{} score was map to three different colors (\ie{} green for low risk, yellow for medium risk, and red for high risk).
+    
+%\begin{itemize}
+%\item Provide clinical cases where it is shown the HII4PICU score as a function of time. Plot on top meds, and fluids, and look at the feature values when HII4PICU is high.
+%\item Look at cases where patient was hypotensive before clinical intervention. How was HII4PICU score in these cases?
+%\end{itemize}
+
+\begin{itemize}
+
+\item [a.] This clinical case was a 15-year old patient who was on mechanical ventilation since time of admission. See \fig{} \ref{fig:clinical_case_ptId2023}. Before patient received clinical intervention (\ie{} fluid bolus represented by a blue vertical line) and became hypotensive (\ie{} systolic blood pressure $<$ 90 mmHg), the patient's body seemed to compensate for poor oxygenation, which was reflected by higher heart rate (30 bpm higher than normal range values) and low urine ouput ($<$ 1 cc/kg/hr). These early indicators of shock are captured by \hii{} showing a high score ($>$ 0.5) at least $6$ hours before patient became hemodynamically unstable. It is also important to note that after the last fluid bolus administration (\ie{} 500 ml around the day 6.5), the \hii{} score dropped below 0.5 (yellow zone), when invasive blood pressure measurements and mechanical ventilation were not needed anymore. The fact that invasive blood pressure measurements were not taken any more may be the reason of a drop in the \hii{} score.  
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=8.5in, angle=-90]{../figures/timeseries/ptId-2023_eId-14.png}
+	\caption{Clinical case of a 15-year old patient who was on mechanical ventilator since time of admission. Weight = 70.3 kg. Patient received a fluid bolus 12 hours after PICU admission (blue vertical line).} 
+	\label{fig:clinical_case_ptId2023}      
+\end{figure}
+
+\item[b.] This clinical case was a 2-year old patient who received clinical intervention after day 6. See \fig{} \ref{fig:clinical_case_ptId2083}  Patient received mechanical ventilation before clinical intervention and was invasively monitored (invasive blood pressure measurements) after. Heart rate linearly increased from 100 bpm to 200 bpm, urine ouput decreased to less than 1 cc/kg/hr, prothrombin time (PT) increased to almost 20 seconds, and SpO2 decreased to 80\%. All these clinical patterns were captured by the \hii{} score at least 2 hours before the first clinical intervention.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=8.5in, angle=-90]{../figures/timeseries/ptId-2083_eId-81.png}
+	\caption{Clinical case of a 2-year old patient who received clinical intervention after day 6. Weight = 10 kg. Patient received a fluid bolus and cardiovascular medications after day 6 of PICU admission (blue and light blue vertical lines).} 
+	\label{fig:clinical_case_ptId2083}      
+\end{figure}
+    
+
+\item [c.] This clinical case was a 2-year old patient who was stable (\ie{} no clinical intervention) during the entire PICU stay. See \fig{} \ref{fig:clinical_case_ptId2784}. Patient did not receive mechanical ventilation and was not invasively monitored. The \hii{} score was in the yellow zone most of the time. 
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=8.5in, angle=-90]{../figures/timeseries/ptId-2784_eId-103.png}
+	\caption{Clinical case of a 2-year old patient who was who was stable during the entire PICU stay. Weight = 14 kg. Patient did not receive mechanical ventilation and was not invasively monitored.} 
+	\label{fig:clinical_case_ptId2784}      
+\end{figure}
+
+\item[d.] This clinical case was a 9-year old patient who did not receive clinical intervention but showed some compensatory mechanisms. See \fig{} \ref{fig:clinical_case_ptId659}. Before the end of day 1, his noninvasive systolic blood pressure decreased to almost 90 mmHg, his urine output decreased to 2.5 cc/kg/hr, and his SpO2 decreased to 94\%. However, his heart rate decreased from 150 bpm to 130 bpm. The \hii{} score increased to 0.6 and stayed in the high risk zone for almost 24 hours. Based on this retrospective analysis, it is very difficult to determine whether the patient was hemodynamically unstable or not during that time period.         
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=8.5in, angle=-90]{../figures/timeseries/ptId-659_eId-61.png}
+	\caption{Clinical case of a 9-year old patient who was who was stable during the entire PICU stay. Weight = 19 kg. Patient did not receive mechanical ventilation and was not invasively monitored.} 
+	\label{fig:clinical_case_ptId659}      
+\end{figure}
+
+\item[e.] This clinical case was a 6-year old patient who received clinical intervention 6 hours after admission to the PICU. See \fig{} \ref{fig:clinical_case_ptId2072}. The patient was not mechanically ventilated and was not invasively monitored. His heart rate decreased from 180 bpm to 120 bpm after fluid resuscitation. It is interesting to note that the \hii{} score started in the high risk zone and then dropped to the medium risk zone after fluid resuscitation. This may indicate that \hii{} could be used for tracking patient's response to therapy.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=8.5in, angle=-90]{../figures/timeseries/ptId-2072_eId-32.png}
+	\caption{Clinical case of a 6-year old patient who was who was stable during the entire PICU stay. Weight = 19 kg. Patient was not mechanically ventilated and invasively monitored. Note that the \hii{} score changed from red to yellow in response to fluid therapy.}  
+	\label{fig:clinical_case_ptId2072}      
+\end{figure}
+
+\end{itemize}
+
+
+\section{Validation}
+This section will be included in an updated version of this document. This section will mainly show the performance of \hii{} in other datasets (\eg{} Banner), and hopefully provide insights whether the algorithm needs to be tailored to the demographics of the hospital. 
+
+
+\chapter{Pseudo-Code for HII Implementation}
+\label{pseudocode}
+This chapter provides a detailed description of all the necessary components for a real time implementation of the \hii{} algorithm. Based on the results shown in \ref{results}, we decided to use AdaBoost-abstain as the algorithm for transferring to the business unit. The general structure of the algorithm is as follows: incoming vital signs data, laboratory data, ventilator parameters, and age  are passed through a filter, allowing only reasonable data to be passed for further processing. The algorithm expects new measurements added as they become available in a time sequential manner (\ie{} no measurements should be added out of order in time). The final output is a score, on a scale from 0 to 1 or as a percent from 0 to 100\%, called the ''HII" score. This score is mapped to colors to indicate the risk level (\ie{} green for low risk, yellow for medium risk, red for high risk).      
+
+\section{Defining Variables}
+The \hii{} score depends on a total of 21 features, which are listed in \tab{} \ref{tab:included_features} along with their corresponding units of measurement. All features listed in \tab{}\ref{tab:features} were considered during the training of the \hii{} algorithm, but some of them were ultimately excluded based on the feature selection procedure of the algorithm. This does not imply that these features are not informative in predicting instability; rather, they provided an insignificant improvement in classification accuracy.
+
+\section{Expiration Time}
+An expiration time is defined as a specified time, after which the measurement is no longer valid. If the current time is greater than or equal to the time stamp of the indicated data type plus the respective expiration time, that data point is no longer valid.  In other words, once the expiration time has been reached and no new data for the specific variable has been reported, the variable should be set to NULL. The expiration time for each of the features is shown in \tab{} \ref{tab:expiration_time}. These expiration times can be customized according to the different standard of practice at each hospital.
+
+\begin{table}[h!]
+\center
+\caption{Suggestion of expiration times for each feature. The feature value should be set to NULL once the expiration time has been reached and no new data has been reported. These expiration times can be customized according to the different standard of practice at each hospital.}
+\label{tab:expiration_time}
+\begin{tabular}{|l|l|}
+	\hline
+	\textbf{Feature} & \textbf{Expiration Time (hours)} \\
+	\hline
+	\hline
+	Invasive Shock Index (iSI) & 1 \\
+	\hline
+	Mean Airway Pressure (MAP) & --\\
+	\hline
+	Arterial Base Excess (aBE) & 24 \\
+	\hline
+	Noninvasive Shock Index (nSI) & 1\\
+	\hline
+	Partial Thromboplastin (PT) & -- \\
+	\hline
+	Arterial pH & 24 \\
+	\hline
+	Total Protein & 24 \\
+	\hline
+	Urine Output & 24 \\
+	\hline
+	Hemoglobin & 24 \\
+	\hline
+	Noninvasive Systolic Blood Pressure (nSBP) & 24 \\
+	\hline
+	Oxygen Saturation Index (OSI) & -- \\
+	\hline
+	Height & -- \\
+	\hline
+	Lactic Acid & 24 \\
+	\hline
+	Heart Rate (HR) & 1 \\
+	\hline
+	Noninvasive Mean Blood Pressure (nMBP) & 1 \\
+	\hline
+	Invasive Diastolic Blood Pressure (iDBP) & 1 \\
+	\hline
+	FiO2 Set & -- \\
+	\hline
+	Daily-Weight & -- \\
+	\hline
+	Invasive Mean Blood Pressure (iMBP) & 1 \\
+	\hline
+	Invasive Systolic Blood Pressure (iSBP) & 1  \\
+	\hline
+	Noninvasive Diastolic Blood Pressure (nDBP) & 1 \\
+	\hline
+\end{tabular}
+\end{table}
+ 
+
+\section{Algorithm Architecture}
+\label{sec:alg_archit}
+This section provides details of the architecture of the algorithm in order 
+to facilitate its real time implementation. Figure \ref{fig:block_diagram} shows a graphical representation of the \hii{} algorithm. Each rectangular block component of the algorithm will be discussed in detail below. 
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=6in]{../figures/block_diagram_alg.pdf}
+	\caption{Block diagram of \hii{} algorithm} 
+	\label{fig:block_diagram}      
+\end{figure}
+
+%\mx{ you have HR5 etc listed twice.  'nSBP5'  does not exist as 5 minute median filtering is not applied to nSBP.}
+
+
+\subsection{Recording data}
+At each stage in this algorithm, it is necessary to record the values of input data and output calculations. Every time a value of the prescribed data or calculation is recorded, the associated time stamp should also be recorded.
+
+\subsection{5-minute median calculator}
+Some vital signs data (HR, iSBP, iMBP, and iDBP) can be reported every minute by the production system.  A 5-minute median of these data must be calculated before further processing of the data.  This 5-minute median filter is not a moving calculation made upon every new data entry. Instead, the median of the first five minutes of data, for each of the above listed vital signs, is calculated and reported, then the median of the next five minutes of vitals data is calculated and reported.  We denote the output of this median filter as HR5, iSBP5, iMBP5, and iDBP5.  Thus, HR5 iSBP5, iMBP5, and iDBP5 are calculated and reported only every five minutes.  These median filtered vital signs replace their values acquired from the real time production data source and are passed along to the plausibility filter and ultimately to the bivariate classifiers. Note that nSBP, nMBP, and nDBP are not subject to such a filter, as it is reported at semi-random frequencies and certainly not on a minute-by-minute basis.
+
+Note that the value of the most recently calculated 5-minute median heart rate, HR5, is held until the next 5 minutes have passed and a new HR5 value is calculated and reported.   Calculated values of HR5 are held until a new HR5 is calculated and reported.  Along this same line of thought, if no new HR data is reported during a 5-minute interval, the previous HR5 value is carried over for this new interval.  HR5 data can be held and carried over as necessary for up to an hour after the time-stamp of the HR5 value, at which point the HR5 value has expired.  If there is still no new HR data being reported after this hour interval has passed, the HR5 value is set to NULL. This approach is similarly applied to the values of iSBP5, iMBP5, and iDBP5. Also, it must be kept in mind, that if another platform is used, at which data is coming in at a higher rate, we will stick to the above scenario, just with more points or fewer points, depending on the frequency.
+
+\subsection{Plausibility filter}
+The plausibility filter checks certain features for values in a valid range. If a feature value meets the criteria shown in \tab{} \ref{tab:plausibility_filter}, its value should be reset to NULL. 
+
+\begin{table}
+\center
+\caption{Plausibility filter. A value is out of range if (\ie{} value $\leq$ Min or value $\geq$ Max). Reset value to NULL if value is out of range.}
+\label{tab:plausibility_filter}
+\begin{tabular}{|l|l|l|}
+	\hline
+	\textbf{Feature} & \textbf{Min} & \textbf{Max} \\
+	\hline
+	\hline
+	Invasive Shock Index (iSI) & 0 & 5 \\
+	\hline
+	Mean Airway Pressure (MAP) & 0 & 30 \\
+	\hline
+	Arterial Base Excess (aBE) & -20 & 20 \\
+	\hline
+	Noninvasive Shock Index (nSI) & 0 & 5 \\
+	\hline
+	Partial Thromboplastin (PT) & 0 & 50 \\
+	\hline
+	Arterial pH & 0 & 9 \\
+	\hline
+	Total Protein & 0 & 10 \\
+	\hline
+	Urine Output & 0 & 20 \\
+	\hline
+	Hemoglobin & 0 & 20 \\
+	\hline
+	Noninvasive Systolic Blood Pressure (nSBP) & 0 & 200 \\
+	\hline
+	Oxygen Saturation Index (OSI) & 0 & 5\\
+	\hline
+	Height & 20 & 250 \\
+	\hline
+	Lactic Acid & 0 & 120 \\
+	\hline
+	Heart Rate (HR) & 0 & 200 \\
+	\hline
+	Noninvasive Mean Blood Pressure (nMBP) & 0 & 200 \\
+	\hline
+	Invasive Diastolic Blood Pressure (iDBP) & 0 & 200 \\
+	\hline
+	FiO2 Set & 0 & 1.5\\
+	\hline
+	Daily-Weight & 0 & 200 \\
+	\hline
+	Invasive Mean Blood Pressure (iMBP) & 0 & 200 \\
+	\hline
+	Invasive Systolic Blood Pressure (iSBP) & 0 & 200 \\
+	\hline
+	Noninvasive Diastolic Blood Pressure (nDBP) & 0 & 200 \\
+	\hline
+\end{tabular}
+\end{table}
+
+\subsection{nSI and iSI calculators}
+nSI should be calculated every time a new nSBP is reported and passed through the plausibility filter. A new nSI should not be calculated every time a new HR5 value is reported. As shown in \eq{} \ref{eqn:nSIcalc}, this calculation is performed by dividing the most recent reported HR5, or the concurrent HR5 value over the the new nSBP value. The output, nSI, is then sent to the bivariate classifier module. If HR5 or nSBP is NULL, then nSI is also NULL. nSI should have the same time stamp as nSBP, and be recorded with this time stamp. iSI should be calculated following the same procedure as the calculation of nSI (see \eq{} \ref{eqn:iSIcalc}).
+
+\begin{eqnarray}
+\text{nSI} = \frac{\text{HR5}}{\text{nSBP}} \label{eqn:nSIcalc}\\
+\text{iSI} = \frac{\text{HR5}}{\text{iSBP5}} \label{eqn:iSIcalc}
+\end{eqnarray}
+
+
+\subsection{OSI calculator} 
+OSI should be calculated every time a new MAP or FiO2 is reported and passed through the plausibility filter. A new OSI should not be calculated every time a new SpO2 value is reported. OSI is calculated as shown in \eq{} \ref{eqn:OSIcalc}. The output, OSI, is then sent to the bivariate classifier module. If SpO2, or MAP, or FiO2 is NULL, then OSI is also NULL. OSI should have the same time stamp as MAP or FiO2 and be recorded with this time stamp.
+
+\begin{eqnarray}
+\text{OSI} = \frac{\text{MAP}*\text{FiO2}*100}{\text{SpO2}} \label{eqn:OSIcalc}
+\end{eqnarray}
+
+\subsection{Bivariate classifiers}
+The eventual \hii{} score is an ensemble of many bivariate classifiers, each of which takes as input one of the features listed in \tab{} \ref{tab:included_features} and age, and outputs a prediction score. If a particular feature is set to NULL, then the bivariate classifier abstains from voting (\ie{} output=0). A detail description of the bivariate classifiers is found in \ref{sec:bivariate_clf}. 
+ 
+\section{Recommended Thresholds and Expected Results}
+The \hii{} algorithm maps risk scores to three different colors (\ie{} green for low risk, yellow for medium risk, and red for high risk). This mapping is achieved by dividing the $[0,1]$ HII score output into three groups. The specific way to divide this range depends largely on factors specific to each hospital (\eg{} the prevalence of hemodynamic instability, and the sensitivity to false positives). Without such customizations, we recommend the division shown in \tab{} \ref{tab:thresholds}, assuming a hemodynamic instability prevalence of $58 \%$. 
+
+\begin{table}
+\center
+\caption{Recommended thresholds.}
+\label{tab:thresholds}
+\begin{tabular}{|l|l|}
+	\hline
+	\textbf{HII Range} & \textbf{Risk Color} \\
+	\hline
+	\hline
+	$\text{HII}(\bm{x_{i}})\geq 0.49$  		& Red\\
+	\hline
+	$0.25\leq\text{HII}(\bm{x_{i}})<0.49$	& Yellow\\
+	\hline
+	$\text{HII}(\bm{x_{i}}) < 0.25$  	& Red\\
+	\hline
+	\hline
+\end{tabular}
+\end{table}  
+
+These divisions are based on sensitivity, specificity, PPV, and NPV rates of the \hii{} algorithm applied to held-out data using cross validation. If the prevalence of hemodynamic instability is known, the PPV and NPV values can be calculated using \eq{} \ref{eqn:ppv} and \eq{} \ref{eqn:npv} based on Baye's theorem. 
+
+\begin{eqnarray}
+\text{PPV} = \frac{\text{Sensitivity}\times\text{Prevalence}}{\text{Sensitivity}\times\text{Prevalence} + (1-\text{Specificity})\times(1-\text{Prevalence})} \label{eqn:ppv} \\
+\text{NPV} = \frac{\text{Specificity}\times(1-\text{Prevalence})}{(1-\text{Sensitivity})\times\text{Prevalence} + \text{Specificity}\times(1-\text{Prevalence})} \label{eqn:npv}
+\end{eqnarray}
+
+
+
+\chapter{Discussion and Conclusion}
+\label{conclusion}
+In this document, we presented a state-of-the-art algorithm for the early detection of hemodynamic instability in PICU patients. The \hii{} algorithm can detect clinical deterioration up to six hours before a clinical intervention. The \hii{} algorithm receives as inputs vital signs, laboratory measurements, and demographic data, and outputs a risk score from 0 to 1 or as a percent from 0 to 100\%. For display purposes, the \hii{} risk score was map to three different colors (\ie{} green for low risk, yellow for medium risk, and red for high risk). This algorithm provides a risk score that can be of significant clinical value in busy PICU environments. In particular, clinicians could use it to  intelligently allocate clinical resources and to be more diligent in the early treatment of high risk patients.\\   
+
+\noindent\textbf{Summary}
+
+The clinical features identified during the training of the \hii{} algorithm are in line with current understanding of the clinical manifestations of early shock. We know that during the early stages of shock the body activates mechanisms to compensate for the lack of oxygen in the main organs and tissues. Mainly, heart rate increases by activation of the sympathetic nervous system, and urine output decreases by activation of the renin-angiotensin-aldosterone system. Although normal blood pressure should not be used as a reliable biomarker of adequate hemodynamics since hypotension is typically a late finding among children in shock \citep{Sinniah:2012}, we found that the trend of blood pressure, heart rate, and shock index may be good early indicators of shock.  Cold in the extremities, mottled skin, and prolonged capillary refill time are also some characteristics of hypoperfusion during early shock. However, these clinical features were not considered in the design of the \hii{} algorithm since their values were very subjective and highly variable within the same hospital. Most of the clinical cases shown in \ref{sec:clinical_cases} showed an increased in heart rate, an increase in shock index, and a low urine output before clinical intervention. We also noted an increased in the \hii{} score at the time the patient was invasively monitored or mechanically ventilated. However, the classification performance was not significantly reduced when invasive measurements or ventilator parameters were excluded (a drop in classification performance from AUC=0.85 to AUC=0.83). Although the \hii{} score was mainly trained for predicting clinical interventions (\ie{} fluid bolus or cardiovascular agents administration), we showed one case where \hii{} could be used for tracking the patient's response to therapy. Further research and prospective studies are needed to answer this question.\\           
+
+\noindent\textbf{Data Limitations and Challenges}
+
+One of the major challenges and most time-consuming task in the development of prediction models has been the use of nonstandard terminology within individual hospital information systems \cite{Frassica:2005}. Most hospital and laboratory information systems catalog very similar data under very diverse naming schemas. Indeed, we spent a lot of time (80\%) and a great effort understanding the type of data and coding of the electronic data elements recorded in the CHLA database. We found cases with different clinical event names, different clinical event codes, but similar data distribution (\eg{} SaO2 (monitor) (\%), code 1065, and SpO2 (monitor)(\%) code 23540), or cases with similar clinical event names, different clinical event codes, but different data distribution (\eg{} SaO2 (monitor) (\%), code 1065, and SaO2 (\%), code 1628). After long data cleaning and discussion with our pediatric critical care experts, we were able to map distinct clinical event codes referring to the same data. We must acknowledge that mapping errors may have occurred as a result of this cleaning process.    
+
+Another challenge in the development of the \hii{} algorithm was the labeling of the data. We used certain clinical interventions to demarcate hemodynamic instability events. This implies that the algorithm was trained based on the standards of care and the specific demographics at that particular hospital. The algorithm parameters learned using CHLA database may not generalize to the standards of care at other hospitals and may require extra tuning of the parameters. Therefore, we suggest to evaluate and tune the parameters on retrospective data before the \hii{} algorithm is deployed at a specific hospital. Another disadvantage of labeling hemodynamic instability events based on clinical interventions is that a patient could have been clinically intervened for treating shock before he was transferred to the ICU. This information was not available in the database, and we may have included this extra noise during the training of the algorithm. \\      
+
+\noindent\textbf{Future Work}
+
+The standard of care and population demographics varies from hospital to hospital and further tuning of the algorithm's parameters may be needed. We would like to answer this question by validating the \hii{} algorithm performance across different hospitals in the United States and other countries. 
+
+The current pediatric database is a very rich database and the Philips team has developed a very close relationship with our clinical collaborators. We would like to leverage this relationship and explore the possibility of developing other pediatric algorithms (\eg{} acute respiratory distress syndrome (ARDS) and acute kidney injury (AKI)) and doing prospective studies to test the clinical value of our algorithms.  
+
+Additionally, we would also like to extend our analysis to find an answer to the following research questions. 
+
+\begin{itemize}
+\item[a.] How many patients are admitted to the PICU stable and later on develop hemodynamic instability, and how many of the patients who develop hemodynamic instability were detected by \hii{} but not by the clinician?
+
+\item[b.] How many of the hemodynamic unstable cases detected by \hii{} had a hypotensive event before clinical intervention, and what was the time duration of a patient with sustained hypotension? 
+
+\item[c.] Does the \hii{} algorithm work better for certain sub-populations?
+
+\item[d.] Is the time duration of a patient being in the \hii{} red zone related to clinical outcome such as mortality, length of stay, or ventilator  free-days?
+\end{itemize}
+
+\bibliography{HII4PICU}
+
+
+%
+% -- Appendices start on odd page (two-sided).
+%
+\cleardoublepage
+\appendix
+\chapter{Appendix}
+
+\section{ISM3 Description}
+This section briefly describes the schema of the database (\texttt{ISM3}) used for the development of the HII algorithm. The ISM3 database comes from an electronic flow sheet (Philips Care-Vue, Waltham, MA) including records from patients admitted to the PICU at Children Hospital Los Angeles (CHLA). This Microsoft SQL database is located in the \texttt{ICCADEV1} Philips server. The size of the database is 445 GB, and it can be accessed via Microsoft SQL Server 2008, which is installed in the \texttt{ICCADEV1} server. The ISM3 database was de-identified and cleared for use by John Murphy.
+
+The database contains $19$ tables. A brief description of each of the tables with the count of the total number of records is shown in \tab{} \ref{ISM3_tables}. The table \verb|CHARTEVENTS| should be used instead of  \verb|CHARTEVENTS_INCOMPLETE| since the latter contains incomplete records from the original database. The main tables queried for the development of HII algorithm are \verb|CENSUSEVENTS|, \verb|CHARTEVENTS|, \verb|D_CHARTITEMS|, \verb|D_IOITEMS|, \verb|D_MEDITEMS|,\verb|D_PATIENTS|,\verb|IOEVENTS|, and \verb|MEDEVENTS|. All records where the \verb|PIDN| column was equal to zero were excluded from the analysis. We noted that records with \verb|PIDN|==0 does not correspond to any subject. Indeed, there is no information about this \verb|PIDN| in the \verb|D_PATIENTS| table. The dataset included records from $15713$ unique patients (from \verb|D_PATIENTS| table). However, only $13,583$ unique patients and $17,598$ encounters ((from the \verb|CENSUSEVENTS| table) have information about time of admission, time of discharge, and discharge status. The column \verb|CHARTTIME| was used instead of \verb|REALTIME| to know the time of the event. Tables \ref{code_mapping} and \ref{code_mapping_cont} show a map between the \verb|ITEMID| codes found in \verb|ISM3| and internal codes defined by us. Note that multiple \verb|ITEMID| codes are mapped to one internal code. For instance, \verb|ITEMID| 4171, 1442, and 1443 are mapped to internal code 788, which correspond to the feature chloride.  Noninvasive systolic blood pressure and noninvasive diastolic blood pressure have the same \verb|ITEMID| but its values are charted in different columns (\ie{} \verb|VALUE1NUM| and \verb|VALUE2NUM|, respectively). The same is true for invasive systolic blood pressure and invasive diastolic blood pressure. 
+
+In addition to the HII algorithm, other pediatric algorithms could be created using this database. For instance, we could create a set of pediatric algorithms for predicting length of PICU stay, acute kidney injury, or weaning from mechanical ventilation.     
+     
+
+\begin{table}[h!]
+\center
+\caption{Brief description of the tables from the ISM3 database.}
+\label{ISM3_tables}
+\begin{tabular}{l|l|l}
+	\hline
+	\textbf{Name} & \textbf{\# rows} & \textbf{Description} \\
+	\hline
+	\hline
+	\verb|A_IODURATIONS| & 608374 & Duration of Input/Output events\\
+	\hline
+	\verb|ADDITIVES| & 550894 & \\
+	\hline
+	\verb|CENSUSEVENTS| & 26616 & Events which record ICU transfers \\	
+	\hline
+	\verb|CHARTEVENTS| & 285830000 & Events which occur on a patient chart \\
+	\hline
+	\verb|CHARTEVENTS_INCOMPLETE| & 54300692 & Events which occur on a patient chart\\
+	\hline
+	\verb|D_CAREUNITS| & 21 & Care units\\
+	\hline
+	\verb|D_CHARTITEMS| & 23554 & Items which can be entered on a patient's chart\\
+	\hline
+	\verb|D_IOITEMS| & 62257 & Input/Output items. Patient fluid Input/Output records\\
+	\hline
+	\verb|D_MEDITEMS| & 5063 & Possible medications which can be administered to a patient\\
+	\hline
+	\verb|D_PATIENTS| & 15908 & Contains patient specific information such as DOB, and sex \\
+	\hline
+	\verb|DELIVERIES| & 237397 & \\
+	\hline
+	\verb|DRIPORDERS| & 144257 & \\
+	\hline
+	\verb|FREEFORMORDERS| & 73023 & \\
+	\hline
+	\verb|INFUSIONORDERS| & 521238 & \\
+	\hline
+	\verb|IOEVENTS| & 16723724 & Fluid Input/Output events\\
+	\hline
+	\verb|MEDEVENTS| & 6914278 & Medication events\\
+	\hline
+	\verb|MEDORDERS| & 884203 & \\
+	\hline 
+	\verb|SOLUTIONS| & 395316 & \\
+	\hline
+	\verb|TOTALBALEVENTS| & 1855483 & Total fluid balance events\\
+	\hline
+	\hline
+\end{tabular}
+\end{table} 
+
+
+\begin{table}[h!]
+\center
+\caption{Mapping \texttt{ITEMID} from \texttt{ISM3} to internal codes}
+\label{code_mapping}
+\begin{tabular}{l|l|l|l}
+	\hline
+	\verb|ITEMID| & \verb|LABEL| & \verb|ITEMID_MAP| & \verb|LABEL_MAP| \\
+	\hline
+	\hline
+	117	& Arterial BP (mmHg) & 51 &	iSBP \\
+	\hline
+	122	& Arterial Mean (mmHg)	& 52 &	iMBP \\
+	\hline
+	117	& Arterial BP (mmHg) & 10051 & iDBP \\
+	\hline
+	764	& NIBP & 455 & nSBP \\
+	\hline
+	765	& NIBP Mean & 456 &	nMBP \\
+	\hline
+	764	& NIBP	& 10455 & nDBP \\
+	\hline
+	982 & Pulse Pressure(mmHg) & 982 & PP \\
+	\hline
+	602 & Heart Rate & 211 & HR \\
+	\hline
+	1022 & Respiratory Rate & 618 & RR \\
+	\hline
+	222 & CVP & 113 & CVP \\
+	\hline
+	1065 &	SaO2 (monitor)(\%) & 23540 & SpO2 \\
+	\hline
+	23540 &	SpO2 (monitor)(\%)	& 23540 & SpO2 \\
+	\hline
+	138 & BSA & 69 & BSA \\
+	\hline
+	139	& BSA & 69 & BSA \\
+	\hline
+	608 & Height & 608 & Height \\
+	\hline
+	609	& Height/Length (cm) & 608 & Height \\
+	\hline
+	1332 & Today's Weight (kg) & 763 & Daily-Weight \\
+	\hline
+	1263 & Weight for Calc (kg) & 763 & Daily-Weight \\
+	\hline
+	2006 & Admit Weight & 763 & Daily-Weight \\
+	\hline
+	1139 & Temp Site/Value (C) & 676 & Temp \\
+	\hline
+	1349 & Albumin & 772 & Albumin \\
+	\hline
+	1350 & Alk Phosphatase & 773 & Alk-Phosphatase \\
+	\hline
+	1366 & BUN & 781 & BUN \\
+	\hline
+	1433 & Calcium Total & 786 & Ca \\
+	\hline
+	4171 & Chloride (BG/POC) & 788 & Chloride \\
+	\hline
+	1442 & Chloride & 788 & Chloride \\
+	\hline
+	1443 & Chloride (BG) & 788 & Chloride \\
+	\hline
+	1461 & Creatinine & 791 & Creatinine \\
+	\hline
+	1489 & Glucose & 811 & Glucose \\
+	\hline
+	4437 & Glucose (Lab-POC) & 811 & Glucose \\
+	\hline
+	4161 & Glucose (POC) & 811 & Glucose \\
+	\hline
+	1500 & Hematocrit & 813 & Hematocrit \\
+	\hline
+	4172 & Hematocrit (POC) & 813 & Hematocrit \\
+	\hline
+	1501 & Hemoglobin & 814 & Hemoglobin \\
+	\hline
+	4173 & Hemoglobin (POC) & 814 & Hemoglobin \\
+	\hline
+	1522 & INR & 815 & INR \\
+	\hline
+	1584 & PT & 824 & PT \\
+	\hline
+	1587 & PTT & 825 & PTT \\
+	\hline
+	1431 & Calcium Ionized & 816 & Ca-Ionized \\
+	\hline
+	1432 & Calcium Ionized (BG) & 816 &	Ca-Ionized \\
+	\hline
+	1543 & Magnesium & 821 & Magnesium \\
+	\hline
+	1604 & Potassium & 829 & Potassium \\
+	\hline
+	4174 & Potassium (BG/POC) & 829 & Potassium \\
+	\hline
+	1605 & Potassium (BG) & 829 & Potassium \\
+	\hline
+	1617 & RBC & 833 & RBC \\
+	\hline
+	\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[h!]
+\center
+\caption{Mapping \texttt{ITEMID} from \texttt{ISM3} to internal codes. Cont.}
+\label{code_mapping_cont}
+\begin{tabular}{l|l|l|l}
+	\hline
+	\verb|ITEMID| & \verb|LABEL| & \verb|ITEMID_MAP| & \verb|LABEL_MAP| \\
+	\hline
+	\hline
+	1725 & WBC & 861 & WBC \\
+	\hline
+	1598 & Platelet Count & 828 & Platelets \\
+	\hline
+	1494 & HCO3a (mEq) & 812 & HCO3 \\
+	\hline
+	3101 & HCO3 (BG) mEq & 812 & HCO3 \\
+	\hline
+	1362 & BEa (mEq/l) & 776 & aBE \\
+	\hline
+	3100 & BE (BG)mEq/l & 776 & aBE \\
+	\hline
+	1590 & PaCO2 (mmHg) & 778 & PaCO2 \\
+	\hline	
+	3102 & PCO2 (BG) mmHg & 778 & PaCO2 \\
+	\hline
+	1591 & PaO2 (mmHg) & 779 & PaO2 \\
+	\hline
+	3103 & PO2 (BG) mmHg & 779 & PaO2 \\
+	\hline
+	1730 & pHa & 780 & pH \\
+	\hline
+	3115 & pH (BG) & 780 & pH \\
+	\hline
+	3107 & SO2 (BG)\% & 834 & SaO2 \\
+	\hline
+	1628 & SaO2 (\%) & 834 & SaO2 \\
+	\hline	
+	902 & PaO2/FIO2 & 16000 & PF-Ratio \\
+	\hline
+	1342 & ALT (SGPT) & 769 & ALT \\
+	\hline
+	1343 & AST (SGOT) & 770 & AST \\
+	\hline
+	458 & ETCO2 (mmHg) & 458 & ETCO2 \\
+	\hline
+	1639 & Sodium (BG) & 837 & Sodium \\
+	\hline
+	1638 & Sodium & 837 & Sodium \\
+	\hline
+	4175 & Sodium (BG/POC) & 837 & Sodium \\
+	\hline
+	1379 & Bilirubin Total & 848 & Total-Bilirubin \\
+	\hline
+	1664 & TotalProtein (Serum) & 849 & Total-Protein \\
+	\hline
+	1668 & Triglycerides & 850 & Triglyceride \\
+	\hline
+	1531 & Lactate Acid & 10818 & Lactic-Acid \\
+	\hline
+	8657 & Lactic Acid & 10818 & Lactic-Acid \\
+	\hline
+	22851 & Lactate Whole Blood & 10818 & Lactic-Acid \\
+	\hline
+	1355 & Anion Gap & 12097 & Anion-Gap \\
+	\hline
+	1597 & Phosphorus & 10773 & Phosphorus \\
+	\hline
+	1662 & Total CO2 (meas) & 777 & Total-CO2 \\
+	\hline
+	1658 & Total CO2 (ABG) & 777 & Total-CO2 \\
+	\hline
+	1199 & Urine cc/kg/hr & 200023 & Urine-Output \\
+	\hline
+	746 & Mean AW Press(cmH2O) & 444 & MAP \\
+	\hline
+	837 & PEEP (cmH2O) & 506 & PEEP \\
+	\hline
+	501 & FIO2 & 190 & FiO2 \\
+	\hline
+	1224 & Ventilation Index & 200024 & VentIndex \\
+	\hline
+	1230 & VentilatorRate(/min) & 200025 & VentRate \\
+	\hline
+	1225 & Ventilator Mode & 200026 & VentMode \\
+	\hline
+	1227 & Ventilator Type & 200027 & VentType \\
+	\hline
+	\hline
+\end{tabular}
+\end{table} 
+
+\cleardoublepage 
+\newpage
+\section{Python Scripts}
+\definecolor{keywords}{RGB}{255,0,90}
+\definecolor{comments}{RGB}{0,0,113}
+\definecolor{red}{RGB}{160,0,0}
+\definecolor{green}{RGB}{0,150,0}
+ 
+\lstset{language=Python, 
+        basicstyle=\ttfamily\small, 
+        keywordstyle=\color{keywords},
+        commentstyle=\color{comments},
+        stringstyle=\color{red},
+        showstringspaces=false,
+        identifierstyle=\color{green}}
+
+\subsection{ism$\_$main.py}
+This script queries the \texttt{ISM3} database using \texttt{SQLAlchemy}, iterates over all encounters, and returns a \texttt{Pandas} DataFrame and a \texttt{Numpy} array to be saved as a \matlab file. The \texttt{Numpy} array contains all features, labels, encounter ids, patient ids, and interventions found 1 hour before a clinical intervention. Refer to \ref{sec:data_compilation} for the definition of clinical intervention. 
+
+\lstinputlisting{C:/Users/310153046/Documents/myDocuments/PRNA/Projects/HII4PICU/CHLA/pediatric_package/scripts/python/ism_main.py}
+
+\newpage
+\subsection{ism$\_$utilities.py}
+This script defines several classes that allow to query the \texttt{ISM3} database. The \texttt{queryISM} class connects to the database, creates a session, and initializes the \texttt{CHARTEVENTS}, \texttt{MEDEVENTS}, \texttt{CENSUSEVENTS}, \texttt{IOEVENTS}, and \verb|D_PATIENTS| tables. The \texttt{queryISM} class has some methods that allow to retrieve clinical events charted during the patient's PICU stay.       
+
+\lstinputlisting{C:/Users/310153046/Documents/myDocuments/PRNA/Projects/HII4PICU/CHLA/pediatric_package/scripts/python/ism_utilities.py}
+
+
+\cleardoublepage 
+\newpage
+\section{Matlab Scripts}
+\lstset{language=Matlab,%
+    %basicstyle=\color{red},
+    breaklines=true,%
+    morekeywords={matlab2tikz},
+    keywordstyle=\color{blue},%
+    morekeywords=[2]{1}, keywordstyle=[2]{\color{black}},
+    identifierstyle=\color{black},%
+    stringstyle=\color{mylilas},
+    commentstyle=\color{mygreen},%
+    showstringspaces=false,%without this there will be a symbol in the places where there is a space
+    numbers=left,%
+    numberstyle={\tiny \color{black}},% size of the numbers
+    numbersep=9pt, % this defines how far the numbers are from the text
+    emph=[1]{for,end,break},emphstyle=[1]\color{red}, %some words to emphasise
+    %emph=[2]{word1,word2}, emphstyle=[2]{style},    
+}
+\subsection{get$\_$data$\_$CHLA.m}
+This script loads the data that was saved from \texttt{ism$\_$main.py} and organize it in a Matlab structure.       
+
+\lstinputlisting{C:/Users/310153046/Documents/myDocuments/PRNA/Projects/HII4PICU/CHLA/pediatric_package/scripts/matlab/main/get_data_CHLA.m}
+
+\cleardoublepage 
+\newpage
+
+\subsection{get$\_$classifier.m}
+This script trains and test a classifier using LDA, logistic regression, or boosting using 10 cross validation folds.      
+
+\lstinputlisting{C:/Users/310153046/Documents/myDocuments/PRNA/Projects/HII4PICU/CHLA/pediatric_package/scripts/matlab/main/get_classifier.m}
+
+\cleardoublepage 
+\newpage
+
+\subsection{generate$\_$figures$\_$clf$\_$performance.m}
+This script generates figures of the classification performance of the classifiers across different scenarios. The figures shown in section \ref{results} were created running this script.      
+
+\lstinputlisting{C:/Users/310153046/Documents/myDocuments/PRNA/Projects/HII4PICU/CHLA/pediatric_package/scripts/matlab/main/generate_figures_clf_performance.m}
+
+\cleardoublepage 
+\newpage
+
+\subsection{generate$\_$figures$\_$features$\_$pdf.m}
+This script generates figures of the distribution of the clinical features as a function of age for stable and unstable patients.      
+
+\lstinputlisting{C:/Users/310153046/Documents/myDocuments/PRNA/Projects/HII4PICU/CHLA/pediatric_package/scripts/matlab/main/generate_figures_features_pdf.m}
+
+\cleardoublepage 
+\newpage
+
+\section{Selected Features}
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-iSI.png}
+	\caption{Bivariate classifier for iSI. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-MAP.png}
+	\caption{Bivariate classifier for MAP. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-aBE.png}
+	\caption{Bivariate classifier for aBE. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-Daily-Weight.png}
+	\caption{Bivariate classifier for Daily-Weight. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\clearpage
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-FiO2.png}
+	\caption{Bivariate classifier for FiO2. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-Height.png}
+	\caption{Bivariate classifier for Height. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-Hemoglobin.png}
+	\caption{Bivariate classifier for Hemoglobin. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-HR.png}
+	\caption{Bivariate classifier for HR. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\clearpage
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-iDBP.png}
+	\caption{Bivariate classifier for iDBP. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-iMBP.png}
+	\caption{Bivariate classifier for iMBP. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-iSBP.png}
+	\caption{Bivariate classifier for iSBP. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-Lactic-Acid.png}
+	\caption{Bivariate classifier for Lactic-Acid. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\clearpage
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-nDBP.png}
+	\caption{Bivariate classifier for nDBP. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-nMBP.png}
+	\caption{Bivariate classifier for nMBP. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-nSBP.png}
+	\caption{Bivariate classifier for nSBP. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-nSI.png}
+	\caption{Bivariate classifier for nSI. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\clearpage
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-OSI.png}
+	\caption{Bivariate classifier for OSI. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-pH.png}
+	\caption{Bivariate classifier for pH. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-PT.png}
+	\caption{Bivariate classifier for PT. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-Total-Protein.png}
+	\caption{Bivariate classifier for Total-Protein. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+\clearpage
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=4in]{../figures/features_selected/feat-Urine-Output.png}
+	\caption{Bivariate classifier for Urine-Output. Each decision stump is defined by a age-dependent threshold, a bias, and a scaling factor. The vertical bar goes from blue to red. Blue indicates lower risk and red indicates higher risk of hemodynamic instability.}      
+\end{figure}
+
+%\cleardoublepage 
+%\newpage
+
+%\section{Normal Range Values}
+%\begin{itemize}
+%\item Include table for normal range values for vital signs
+%\item Include table for normal range values for labs
+%\end{itemize}
+
+\mx{you do not report performance using PPV.  it will be good to  include that in future version(s) of this report or manuscript for submission.}
+
+\end{document}

@@ -1,0 +1,65 @@
+itemid,hirbaname,bannercode,bannername,featcol
+51,Arterial BP Systolic,3047191,SBP,1
+52,Arterial BP Mean ,196778081,Arterial MAP from monitor,2
+69,BSA (m2),,,3
+113,CVP           (mmHg),3145187,CVP,4
+190,FIO2,826661,FIO2,5
+198,GCS Total,3054978,Glasgow Coma Score (Form),6
+211,Heart Rate,3049471,Heart Rate,7
+229,CapillaryRefill(sec),3055595,Capillary Refill,8
+455,NBP Systolic,3059679,Systolic Blood Pressure,9
+456,NBP Mean,196778082,Mean BP from monitor,10
+458,ETCO2         (mmHg),3057412,ETCO2,11
+490,Extremity Color,,,12
+491,Extremity Temp,,,13
+608,Height,,,14
+618,Respiratory Rate,3049550,Respiratory Rate,15
+676,Temperature C,3144901,Temp C,16
+734,Lt Pupil Size   (mm),3056927,Left pupil size,17
+763,Daily Weight,3053089,Weight (kg),18
+769,ALT,705926,ALT,19
+770,AST,705924,AST,20
+772,Albumin,705919,Albumin,21
+773,Alk Phosphate,705923,Alkaline Phos,22
+776,  Arterial Base Excess,120802112,"Base Excess, ABG",23
+778,  Arterial PaCO2,120802109,"PCO2, ABG",24
+779,  Arterial PaO2,120802110,"PO2, ABG",25
+780,  pH,120802108,"pH, ABG",26
+781,BUN,681993,BUN,27
+786,Calcium,681996,Calcium,28
+788,Chloride,829816,sodium chloride,29
+791,Creatinine,681994,Creatinine,30
+811,Glucose,15616636,Glucose POC,31
+812,  HCO3,120802111,"HCO3(Bicarb), ABG",32
+813,Hematocrit,,,33
+814,Hemoglobin,,,34
+815,  INR,711261,INR,35
+816, Inoized Calcium,710269,Ionized Calcium,36
+821,Magnesium,,,37
+824,  PT,,,38
+825,  PTT,711229,APTT,39
+828,Platelets,682006,Platelet,40
+829,Potassium,681988,Potassium,41
+833,RBC,681999,RBC,42
+834,  SaO2,3053467,O2 Saturation,43
+837,Sodium,681987,Sodium,44
+848, Total Bili,705932,Bilirubin Total,45
+849,Total Protein,705918,"Protein, Total",46
+850,Triglyceride,,,47
+861,WBC,681997,WBC,48
+982,Pulse Pressure(mmHg),,,49
+1048,Rt Pupil Size   (mm),3056876,Right pupil size,50
+1085,Skin Color,,,51
+1088,Skin Temperature,,,52
+10051,Arterial BP Diastolic,3047195,DBP,53
+10455,NBP Diastolic,3059689,Diastolic Blood Pressure,54
+10538,GCS (prism),,,55
+10770,Nail Bed Color,,,56
+10818, Lactic Acid,245357455,"Lactic Acid, ABG",57
+16000, PF Ratio,,,58
+23540,SpO2 (monitor)   (%),,,59
+200023,Urine Output,3141699,Urine Output,60
+777,Total CO2,,,61
+12097,Anion Gap,,,62
+10773,Phosphorus,,,63
+10627,ICP,,,64
