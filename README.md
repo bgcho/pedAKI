@@ -56,7 +56,7 @@
   * Run autorun_adaboost_by_age.m	
 
 
-5. Libraries to run the .ipynb files and .m files
+5. **Libraries to run the .ipynb files and .m files**
   * ism_utilities_Ben.py
   * pedAKI_utilities.py
   * stm_utilities.py
