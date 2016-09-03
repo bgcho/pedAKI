@@ -2,6 +2,8 @@
 
 ### Work flow of pediatric AKI predictor
 
+> Note:
+
 1. **Get design matrix X and label vector y**
   1. ISM
     1. Run pedAKI_get_itemdf_ism.ipynb: This script queries the ISM db and extracts the features for X (Only includes the encounters that have creatinine measurement). This reduces time for the following steps since we do not need to query the  remote db anymore.
