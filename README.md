@@ -14,7 +14,6 @@
 
   2. STM
 
-    
           Note: Before running the pedAKI_get_itemdf_stm.ipynb, you will need access to the postgreSQL server in ICCADEV1. Follow the instructions below to get access.
           1. Access ICCADEV1 server either remotely or locally. For remote access, the ip address of ICCADEV1 server is 130.140.52.181, Username is Iccadev1\Administrator, and Password is hirba4u
           2. Open "C:\Program Files\PostgreSQL\9.5\data\pg_hba.conf"
@@ -26,6 +25,7 @@
     4. Run pedAKI_plausibility_filter.ipynb: This script filters the plausible values of each feature. Set the db_name variable as 'stm' before running the script.
     5. (Optional)Run pedAKI_prep_train_test.ipynb: This script reforms the I/O dataframe to a form that is compatible for train/test. This script provides the final X and y for train/test.
     6. Run pedAKI_prep_train_test_nofill.ipynb: This script does the same thing as pedAKI_prep_train_test.ipynb, but doesn't fill the NaN values. Set the db_name variable as 'stm' before running the script.
+    
   3. Banner
   
           Note: Before running pedAKI_import_banner.ipynb, follow the instruction below
@@ -50,7 +50,7 @@
 
 3. **Train/Test Adaboost**
   * Run autorun_adaboost.m
-  * 
+  
           Note
           1. boostedHII_cv.m, boostedHII_train.m are modified to manage imbalance between institution.
           2. It seems that there should be at least two values in each group (y=0, y=1) to run boostedHII_train.m without error. For example, wbc count in Banner only has one value for y=1 group. For this case, boostedHII_train.m returns an error related to the decision stump.
