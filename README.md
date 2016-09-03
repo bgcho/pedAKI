@@ -2,7 +2,6 @@
 
 ### Work flow of pediatric AKI predictor
 
-> Note:
 
 1. **Get design matrix X and label vector y**
   1. ISM
@@ -49,9 +48,9 @@
 
 3. **Train/Test Adaboost**
   * Run autorun_adaboost.m
-  > * Note: boostedHII_cv.m, boostedHII_train.m are modified to manage imbalance between institution.
-  > * Note: It seems that there should be at least two values in each group (y=0, y=1) to run boostedHII_train.m without error. For example, wbc count in Banner only has one value for y=1 group. For this case, boostedHII_train.m returns an error related to the decision stump.
-
+      > **Note**
+      > * boostedHII_cv.m, boostedHII_train.m are modified to manage imbalance between institution.
+      > * It seems that there should be at least two values in each group (y=0, y=1) to run boostedHII_train.m without error. For example, wbc count in Banner only has one value for y=1 group. For this case, boostedHII_train.m returns an error related to the decision stump.
 
 4. **Test Adaboost for age groups**
   * Run autorun_adaboost_by_age.m	
